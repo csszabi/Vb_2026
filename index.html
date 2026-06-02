@@ -123,7 +123,37 @@ code{background:#1c1c1c;color:#888;padding:1px 6px;border-radius:4px}
 <div id="login" style="display:none">
   <div class="login-wrap">
     <div class="login-card">
-      <div class="login-icon">⚽</div>
+      <div class="login-icon" style="background:transparent;border:none">
+        <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="ballGrad" cx="40%" cy="35%" r="60%">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#cccccc"/>
+            </radialGradient>
+            <clipPath id="ballClip">
+              <circle cx="36" cy="36" r="27"/>
+            </clipPath>
+          </defs>
+          <!-- Labda alap -->
+          <circle cx="36" cy="36" r="27" fill="url(#ballGrad)" stroke="#222" stroke-width="1.5"/>
+          <!-- Középső ötszög -->
+          <polygon points="36,22 43,27 40.5,35.5 31.5,35.5 29,27" fill="#111" clip-path="url(#ballClip)"/>
+          <!-- Bal-felső ötszög -->
+          <polygon points="16,28 23,24 27,31 22,37 14,35" fill="#111" clip-path="url(#ballClip)"/>
+          <!-- Jobb-felső ötszög -->
+          <polygon points="56,28 49,24 45,31 50,37 58,35" fill="#111" clip-path="url(#ballClip)"/>
+          <!-- Bal-alsó ötszög -->
+          <polygon points="19,50 20,42 28,40 32,47 26,53" fill="#111" clip-path="url(#ballClip)"/>
+          <!-- Jobb-alsó ötszög -->
+          <polygon points="53,50 52,42 44,40 40,47 46,53" fill="#111" clip-path="url(#ballClip)"/>
+          <!-- Alsó középső ötszög -->
+          <polygon points="36,58 29,53 31.5,45 40.5,45 43,53" fill="#111" clip-path="url(#ballClip)"/>
+          <!-- Körél -->
+          <circle cx="36" cy="36" r="27" fill="none" stroke="#222" stroke-width="1.5"/>
+          <!-- Fény -->
+          <ellipse cx="29" cy="26" rx="7" ry="5" fill="white" opacity="0.3" transform="rotate(-25 29 26)"/>
+        </svg>
+      </div>
       <h1 class="login-title">VB 2026 Tippjáték</h1>
       <p class="login-sub">Add meg a neved a belépéshez</p>
       <p class="login-muted">Jún. 11 – Júl. 19 · USA · Kanada · Mexikó</p>
