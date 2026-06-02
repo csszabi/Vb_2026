@@ -280,7 +280,11 @@ async function pollData(){
   S.matches = ALL_MATCHES.map(m => results&&results[m.id] ? {...m,result:results[m.id]} : m);
   S.tips = tips||{};
   S.users = users ? Object.keys(users).filter(u=>u!==ADMIN) : [];
-  if(S.username) renderMain();
+
+  // Ne renderelj újra ha éppen valaki inputba gépel
+  const activeEl = document.activeElement;
+  const isTyping = activeEl && (activeEl.dataset.mid || activeEl.dataset.res);
+  if(S.username && !isTyping) renderMain();
 }
 
 function startPolling(){
@@ -543,6 +547,22 @@ function bindMainEvents(isAdmin){
     showToast("Tippek elmentve ✓");
   };
   document.getElementById("saveTipsBtn")?.addEventListener("click", doSaveAll);
+
+  // Input: azonnal mentés gépelés közben (debounce 800ms)
+  const debounceTimers = {};
+  document.querySelectorAll(".score-input[data-mid]").forEach(inp => {
+    inp.addEventListener("input", () => {
+      const mid=inp.dataset.mid, side=inp.dataset.side, val=inp.value;
+      S.tips[S.username]=S.tips[S.username]||{};
+      S.tips[S.username][mid]=S.tips[S.username][mid]||{};
+      S.tips[S.username][mid][side]=val;
+      // Debounce: 800ms után menti ha nem gépel tovább
+      clearTimeout(debounceTimers[mid+side]);
+      debounceTimers[mid+side]=setTimeout(()=>{
+        if(val!=="") dbSet(`tips/${S.username}/${mid}/${side}`,val);
+      }, 800);
+    });
+  });
   // Admin result input
   document.querySelectorAll(".score-input[data-res]").forEach(inp=>{
     inp.addEventListener("change",()=>{
