@@ -323,22 +323,39 @@ function getQualified(matches){
 
 function matchesWithTeams(matches){
   const q=getQualified(matches);
+
+  const resolve=slot=>{
+    if(q[slot])return q[slot];
+    if(slot.startsWith("3rd"))return slotLabel(slot);
+    return slotLabel(slot);
+  };
+
+  // Először feloldjuk a csapatneveket az összes mérkőzésnél
+  const resolved=matches.map(m=>{
+    if(m.phase==="csoport")return m;
+    if(!m.hs&&!m.as)return m;
+    return{...m,home:resolve(m.hs),away:resolve(m.as)};
+  });
+
+  // Majd a győzteseket is feloldjuk a már feloldott nevekkel
   const winner=id=>{
-    const m=matches.find(x=>x.id===id);
+    const m=resolved.find(x=>x.id===id);
     if(!m||!m.result)return null;
     return +m.result.home>+m.result.away?m.home:(+m.result.away>+m.result.home?m.away:null);
   };
-  const resolve=slot=>{
+
+  const resolveWithWinner=slot=>{
     if(q[slot])return q[slot];
     if(slot.startsWith("3rd"))return slotLabel(slot);
     const w=winner(slot);
     if(w)return w;
     return slotLabel(slot);
   };
+
   return matches.map(m=>{
     if(m.phase==="csoport")return m;
     if(!m.hs&&!m.as)return m;
-    return{...m,home:resolve(m.hs),away:resolve(m.as)};
+    return{...m,home:resolveWithWinner(m.hs),away:resolveWithWinner(m.as)};
   });
 }
 
