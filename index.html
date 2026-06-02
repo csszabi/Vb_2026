@@ -129,13 +129,13 @@ code{background:#1c1c1c;color:#888;padding:1px 6px;border-radius:4px}
       <p class="login-muted">Jún. 11 – Júl. 19 · USA · Kanada · Mexikó</p>
       <div class="login-row">
         <input id="nameInput" class="login-input" placeholder="pl. Kovács Péter" autocomplete="off"/>
-        <button class="login-btn" id="loginBtn">Belépés</button>
       </div>
-      <div class="pw-wrap" id="pwWrap">
-        <input id="pwInput" class="pw-input" type="password" placeholder="Admin jelszó"/>
-        <p class="pw-error" id="pwError">Hibás jelszó!</p>
+      <div class="pw-wrap" id="pwWrap" style="display:block">
+        <input id="pwInput" class="pw-input" type="password" placeholder="PIN kód (4 szám)" maxlength="4" inputmode="numeric"/>
+        <p class="pw-error" id="pwError"></p>
       </div>
-      <p class="login-hint">Admin: <code>admin</code></p>
+      <button class="login-btn" id="loginBtn" style="width:100%;margin-bottom:12px">Belépés</button>
+      <p class="login-hint">Admin: <code>admin</code> · Első belépéskor a PIN rögzül</p>
     </div>
   </div>
 </div>
@@ -278,7 +278,7 @@ async function pollData(){
   ]);
   S.matches = ALL_MATCHES.map(m => results&&results[m.id] ? {...m,result:results[m.id]} : m);
   S.tips = tips||{};
-  S.users = users ? Object.keys(users) : [];
+  S.users = users ? Object.keys(users).filter(u=>u!==ADMIN) : [];
   if(S.username) renderMain();
 }
 
@@ -288,31 +288,42 @@ function startPolling(){
 }
 
 // ── Login ─────────────────────────────────────────────
-document.getElementById("nameInput").addEventListener("input", function(){
-  const isAdm = this.value.trim().toLowerCase()==="admin";
-  document.getElementById("pwWrap").style.display = isAdm?"block":"none";
-  document.getElementById("pwError").style.display = "none";
-});
 document.getElementById("nameInput").addEventListener("keydown", e=>e.key==="Enter"&&doLogin());
 document.getElementById("pwInput").addEventListener("keydown", e=>e.key==="Enter"&&doLogin());
 document.getElementById("loginBtn").addEventListener("click", doLogin);
 
 async function doLogin(){
   const n = document.getElementById("nameInput").value.trim();
-  if(!n) return;
+  const pw = document.getElementById("pwInput").value.trim();
+  const errEl = document.getElementById("pwError");
+  errEl.style.display="none";
+
+  if(!n){ errEl.textContent="Add meg a neved!"; errEl.style.display="block"; return; }
+  if(!pw){ errEl.textContent="Add meg a PIN kódot!"; errEl.style.display="block"; return; }
+
+  // Admin belépés
   if(n.toLowerCase()==="admin"){
-    const pw = document.getElementById("pwInput").value;
-    if(pw!==ADMIN_PW){ document.getElementById("pwError").style.display="block"; return; }
-    S.username = ADMIN;
-  } else {
-    S.username = n;
-    const exists = await dbGet(`users/${n}`);
-    if(!exists) await dbSet(`users/${n}`, true);
+    if(pw!==ADMIN_PW){ errEl.textContent="Hibás jelszó!"; errEl.style.display="block"; return; }
+    S.username=ADMIN;
+    show("main"); await pollData(); startPolling(); renderMain();
+    return;
   }
-  show("main");
-  await pollData();
-  startPolling();
-  renderMain();
+
+  // Normál felhasználó — PIN ellenőrzés
+  const existing = await dbGet(`users/${n}`);
+  if(existing && existing.pin){
+    // Már regisztrált — ellenőrizzük a PIN-t
+    if(existing.pin !== pw){
+      errEl.textContent="Hibás PIN kód!"; errEl.style.display="block"; return;
+    }
+  } else {
+    // Első belépés — PIN rögzítése
+    if(pw.length < 4){ errEl.textContent="A PIN kód 4 számjegyű legyen!"; errEl.style.display="block"; return; }
+    await dbSet(`users/${n}`, { pin: pw });
+  }
+
+  S.username=n;
+  show("main"); await pollData(); startPolling(); renderMain();
 }
 
 // ── Render ────────────────────────────────────────────
