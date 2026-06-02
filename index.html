@@ -405,9 +405,7 @@ function renderMatches(visible,phases){
     const scoreHtml=locked
       ?`<div class="score-wrap"><div class="score-box">${myTip.home??"-"}</div><span class="score-sep">–</span><div class="score-box">${myTip.away??"-"}</div></div>`
       :`<div class="score-wrap"><input class="score-input" type="number" min="0" max="20" value="${myTip.home??""}" data-mid="${m.id}" data-side="home"/><span class="score-sep">–</span><input class="score-input" type="number" min="0" max="20" value="${myTip.away??""}" data-mid="${m.id}" data-side="away"/></div>`;
-    const resultRow=m.result
-      ?`<div style="text-align:center;padding:5px 0 6px;font-size:12px;color:#555;border-top:1px solid #222;">Végeredmény: <span style="color:#f0f0f0;font-weight:600;">${m.result.home}–${m.result.away}</span> ${badgeHtml(pts)}</div>`
-      :"";
+    const resultRow=`<div style="text-align:center;padding:5px 0 6px;font-size:12px;color:#ffffff;border-top:1px solid #222;">${m.result ? `Végeredmény: <span style="color:#ffffff;font-weight:600;">${m.result.home}–${m.result.away}</span> ${badgeHtml(pts)}` : `<span style="color:#555">Végeredmény: –</span>`}</div>`;
     h+=`<div class="match-card">
       <div class="match-head">
         <span class="match-info" style="color:#ffffff">${m.group?m.group+" csoport":(m.label||"")} · ${fmtTime(m.time)}</span>
