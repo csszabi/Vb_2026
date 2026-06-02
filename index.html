@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VB 2026 Tippjáték</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#f0f0f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+button{cursor:pointer;font-family:inherit}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+.app{max-width:680px;margin:0 auto;padding:12px}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:16px}
+.loading-bar{width:180px;height:3px;background:#1c1c1c;border-radius:4px;overflow:hidden}
+.loading-bar-inner{height:100%;width:60%;background:#00c97a;border-radius:4px}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:80vh;padding:2rem 1rem}
+.login-card{background:#141414;border-radius:20px;border:1px solid #333;padding:40px 36px;max-width:380px;width:100%;text-align:center}
+.login-icon{width:72px;height:72px;border-radius:50%;background:rgba(0,201,122,.12);border:1px solid rgba(0,201,122,.2);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px}
+.login-title{font-size:22px;font-weight:700;margin-bottom:6px}
+.login-sub{color:#888;font-size:14px;margin-bottom:4px}
+.login-muted{color:#444;font-size:12px;margin-bottom:28px}
+.login-row{display:flex;gap:8px;margin-bottom:12px}
+.login-input{flex:1;padding:9px 13px;border-radius:10px;border:1px solid #333;font-size:15px;outline:none;color:#f0f0f0;background:#1a1a1a}
+.login-btn{padding:9px 18px;border-radius:10px;border:none;background:#00c97a;color:#000;font-weight:700;font-size:15px}
+.login-hint{color:#444;font-size:12px}
+.pw-wrap{margin-bottom:12px;display:none}
+.pw-input{width:100%;padding:9px 13px;border-radius:10px;border:1px solid #333;font-size:15px;outline:none;color:#f0f0f0;background:#1a1a1a}
+.pw-error{color:#ff5252;font-size:12px;margin-top:6px;display:none}
+code{background:#1c1c1c;color:#888;padding:1px 6px;border-radius:4px}
+.header{background:linear-gradient(135deg,#0c1f14,#081510);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(0,201,122,.15)}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-title{font-weight:700;font-size:16px}
+.header-sub{font-size:11px;color:#00c97a;opacity:.8}
+.header-right{display:flex;align-items:center;gap:10px}
+.header-user{font-size:13px;color:#888}
+.logout-btn{font-size:12px;padding:4px 12px;border-radius:8px;border:1px solid #333;background:transparent;color:#888}
+.tabs{background:#141414;display:flex;border-bottom:1px solid #222}
+.tab-btn{flex:1;padding:12px 8px;border:none;background:transparent;font-size:13px;color:#888;border-bottom:2px solid transparent;transition:all .15s}
+.tab-btn.active{color:#00c97a;border-bottom-color:#00c97a;font-weight:700}
+.content{background:#0a0a0a;padding:16px;min-height:300px}
+.phase-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.group-filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+.filter-btn{padding:5px 13px;border-radius:20px;font-size:12px;border:1px solid #333;background:transparent;color:#888}
+.filter-btn.ag{border-color:#00c97a;background:rgba(0,201,122,.12);color:#00c97a;font-weight:600}
+.filter-btn.ap{border-color:#b49eff;background:rgba(180,158,255,.12);color:#b49eff;font-weight:600}
+.group-btn{width:34px;height:34px;border-radius:8px;font-size:13px;border:1px solid #333;background:transparent;color:#888}
+.group-btn.ag{border-color:#00c97a;background:rgba(0,201,122,.12);color:#00c97a;font-weight:600}
+.group-btn.ap{border-color:#b49eff;background:rgba(180,158,255,.12);color:#b49eff;font-weight:600}
+.match-list{display:flex;flex-direction:column;gap:8px}
+.match-card{background:#141414;border:1px solid #272727;border-radius:12px;overflow:hidden}
+.match-head{padding:5px 12px;display:flex;justify-content:space-between;align-items:center;background:#1c1c1c;border-bottom:1px solid #272727}
+.match-info{font-size:11px;color:#444}
+.match-badges{display:flex;gap:5px;align-items:center}
+.badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700}
+.badge-locked{background:rgba(240,165,0,.12);color:#f0a500}
+.badge-result{font-size:12px;font-weight:700;color:#f0f0f0;background:#141414;padding:2px 8px;border-radius:6px;border:1px solid #333}
+.badge-3{background:rgba(0,201,122,.12);color:#00c97a}
+.badge-2{background:rgba(76,163,255,.12);color:#4ca3ff}
+.badge-1{background:rgba(240,165,0,.12);color:#f0a500}
+.badge-0{background:rgba(255,82,82,.12);color:#ff5252}
+.match-body{display:flex;align-items:center;gap:8px;padding:10px 12px}
+.team{flex:1;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500}
+.team-home{justify-content:flex-end}
+.team-away{justify-content:flex-start}
+.team img{width:22px;height:15px;border-radius:2px;object-fit:cover;flex-shrink:0}
+.score-wrap{display:flex;gap:4px;align-items:center}
+.score-box{width:36px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid #272727;border-radius:7px;font-size:14px;color:#888;background:#1c1c1c}
+.score-input{width:42px;text-align:center;padding:5px 0;border-radius:7px;border:1px solid #333;font-size:15px;color:#f0f0f0;background:#222;outline:none}
+.score-sep{color:#444;font-weight:700}
+.board-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.board-row{display:flex;align-items:center;gap:12px;background:#141414;border:1px solid #272727;border-radius:12px;padding:10px 16px}
+.board-row.me{background:rgba(0,201,122,.12);border-color:rgba(0,201,122,.27)}
+.rank-badge{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#1c1c1c;font-size:13px;font-weight:700}
+.board-name{flex:1;font-size:14px}
+.board-pts{font-size:22px;font-weight:700}
+.board-lbl{font-size:12px;color:#444}
+.rules-card{background:#141414;border:1px solid #272727;border-radius:12px;padding:12px 16px}
+.rules-title{font-weight:700;font-size:13px;color:#00c97a;margin-bottom:8px}
+.rule-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.rule-badge{padding:1px 8px;border-radius:8px;font-weight:700;font-size:12px;min-width:48px;text-align:center}
+.rule-txt{color:#888;font-size:13px}
+.admin-tabs{display:flex;background:#141414;border-radius:10px;border:1px solid #272727;overflow:hidden;margin-bottom:16px}
+.admin-tab{flex:1;padding:10px;border:none;background:transparent;font-size:13px;color:#888;border-bottom:2px solid transparent}
+.admin-tab.active{background:rgba(180,158,255,.12);color:#b49eff;font-weight:700;border-bottom-color:#b49eff}
+.admin-hint{color:#888;font-size:13px;margin-bottom:14px}
+.admin-card{background:#141414;border:1px solid #272727;border-radius:12px;overflow:hidden;margin-bottom:8px}
+.admin-head{padding:5px 12px;background:#1c1c1c;border-bottom:1px solid #272727;font-size:11px;color:#b49eff}
+.admin-body{display:flex;align-items:center;gap:8px;padding:10px 12px}
+.save-btn{padding:5px 12px;border-radius:8px;border:none;background:#b49eff;color:#000;font-size:12px;font-weight:700}
+.saved-bar{text-align:center;font-size:11px;color:#00c97a;background:rgba(0,201,122,.12);padding:3px;border-top:1px solid rgba(0,201,122,.13)}
+.player-card{background:#141414;border:1px solid #272727;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.player-avatar{width:36px;height:36px;border-radius:50%;background:rgba(180,158,255,.12);border:1px solid rgba(180,158,255,.27);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#b49eff;flex-shrink:0}
+.player-info{flex:1}
+.player-name{font-weight:600;font-size:14px}
+.player-meta{font-size:12px;color:#444}
+.player-rank{font-size:12px;padding:3px 10px;border-radius:8px;background:#1c1c1c;color:#888;border:1px solid #272727}
+.del-btn{padding:5px 11px;border-radius:8px;border:1px solid rgba(255,82,82,.27);background:rgba(255,82,82,.12);color:#ff5252;font-size:12px;font-weight:700}
+.summary{background:#141414;border:1px solid #272727;border-radius:12px;padding:12px 16px;font-size:13px;color:#888;margin-top:16px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:999}
+.modal{background:#141414;border-radius:16px;border:1px solid rgba(255,82,82,.27);padding:28px 32px;max-width:340px;width:90%;text-align:center}
+.modal-icon{font-size:32px;margin-bottom:12px}
+.modal-title{font-weight:700;font-size:16px;margin-bottom:8px}
+.modal-text{color:#888;font-size:14px;margin-bottom:20px}
+.modal-btns{display:flex;gap:10px;justify-content:center}
+.modal-cancel{padding:8px 20px;border-radius:10px;border:1px solid #333;background:transparent;font-size:14px;color:#888}
+.modal-del{padding:8px 20px;border-radius:10px;border:none;background:#ff5252;color:#fff;font-size:14px;font-weight:700}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:8px 20px;border-radius:12px;font-weight:600;font-size:13px;z-index:1000;white-space:nowrap;pointer-events:none;display:none}
+.toast-ok{background:#1c1c1c;color:#00c97a;border:1px solid rgba(0,201,122,.27)}
+.toast-info{background:#1c1c1c;color:#4ca3ff;border:1px solid rgba(76,163,255,.27)}
+.empty{color:#444;text-align:center;padding:24px 0;font-size:14px}
+.main-wrap{border-radius:18px;overflow:hidden;border:1px solid #333}
+</style>
+</head>
+<body>
+
+<div id="loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px">
+  <div style="font-size:40px">⚽</div>
+  <div style="font-size:15px;font-weight:500;color:#00c97a">Adatok betöltése…</div>
+  <div class="loading-bar"><div class="loading-bar-inner"></div></div>
+</div>
+
+<div id="login" style="display:none">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-icon">⚽</div>
+      <h1 class="login-title">VB 2026 Tippjáték</h1>
+      <p class="login-sub">Add meg a neved a belépéshez</p>
+      <p class="login-muted">Jún. 11 – Júl. 19 · USA · Kanada · Mexikó</p>
+      <div class="login-row">
+        <input id="nameInput" class="login-input" placeholder="pl. Kovács Péter" autocomplete="off"/>
+      </div>
+      <div class="pw-wrap" id="pwWrap" style="display:block">
+        <input id="pwInput" class="pw-input" type="password" id="pwInput" placeholder="PIN kód (4 szám)" maxlength="4" inputmode="numeric"/>
+        <p id="pwHint" style="color:#f0f0f0;font-size:12px;margin-top:6px">Az első belépéshez adj meg egy PIN kódot.</p>
+        <p class="pw-error" id="pwError"></p>
+      </div>
+      <button class="login-btn" id="loginBtn" style="width:100%;margin-bottom:12px">Belépés</button>
+      <p class="login-hint">Admin: <code>admin</code></p>
+    </div>
+  </div>
+</div>
+
+<div id="main" style="display:none">
+  <div id="toast" class="toast"></div>
+  <div id="modalContainer"></div>
+  <div class="app">
+    <div class="main-wrap">
+      <div id="header"></div>
+      <div id="tabs"></div>
+      <div id="content" class="content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+const DB_URL = "https://foci-vb-default-rtdb.europe-west1.firebasedatabase.app";
+const ADMIN  = "admin";
+const ADMIN_PW = "Teddypicker1";
+// ══════════════════════════════════════════════════════
+
+// ── Firebase REST ────────────────────────────────────
+const dbGet = async p => { try { const r = await fetch(`${DB_URL}/${p}.json`); return r.ok ? r.json() : null; } catch { return null; } };
+const dbSet = async (p, v) => { try { await fetch(`${DB_URL}/${p}.json`, { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(v) }); } catch {} };
+const dbDel = async p => { try { await fetch(`${DB_URL}/${p}.json`, { method:"DELETE" }); } catch {} };
+
+// ── Static data ──────────────────────────────────────
+const FLAG_CODES = {
+  "Mexikó":"mx","Dél-Afrika":"za","Dél-Korea":"kr","Csehország":"cz",
+  "Kanada":"ca","Svájc":"ch","Katar":"qa","Bosznia-Hercegovina":"ba",
+  "Brazília":"br","Marokkó":"ma","Skócia":"gb-sct","Haiti":"ht",
+  "USA":"us","Paraguay":"py","Ausztrália":"au","Törökország":"tr",
+  "Németország":"de","Curaçao":"cw","Elefántcsontpart":"ci","Ecuador":"ec",
+  "Hollandia":"nl","Japán":"jp","Svédország":"se","Tunézia":"tn",
+  "Belgium":"be","Egyiptom":"eg","Irán":"ir","Új-Zéland":"nz",
+  "Spanyolország":"es","Uruguay":"uy","Szaúd-Arábia":"sa","Zöld-foki-szigetek":"cv",
+  "Franciaország":"fr","Szenegál":"sn","Norvégia":"no","Irak":"iq",
+  "Argentína":"ar","Algéria":"dz","Ausztria":"at","Jordánia":"jo",
+  "Portugália":"pt","Kolumbia":"co","Üzbegisztán":"uz","Kongói DK":"cd",
+  "Anglia":"gb-eng","Horvátország":"hr","Panama":"pa","Ghána":"gh",
+};
+const GS = {
+  A:[["Mexikó","Dél-Afrika","2026-06-11T21:00"],["Dél-Korea","Csehország","2026-06-12T04:00"],["Csehország","Dél-Afrika","2026-06-18T18:00"],["Mexikó","Dél-Korea","2026-06-19T03:00"],["Csehország","Mexikó","2026-06-25T03:00"],["Dél-Afrika","Dél-Korea","2026-06-25T03:00"]],
+  B:[["Kanada","Bosznia-Hercegovina","2026-06-12T21:00"],["Katar","Svájc","2026-06-13T21:00"],["Svájc","Bosznia-Hercegovina","2026-06-18T21:00"],["Kanada","Katar","2026-06-19T00:00"],["Svájc","Kanada","2026-06-24T21:00"],["Bosznia-Hercegovina","Katar","2026-06-24T21:00"]],
+  C:[["Brazília","Marokkó","2026-06-14T00:00"],["Haiti","Skócia","2026-06-14T03:00"],["Skócia","Marokkó","2026-06-20T00:00"],["Brazília","Haiti","2026-06-20T03:00"],["Skócia","Brazília","2026-06-25T00:00"],["Marokkó","Haiti","2026-06-25T00:00"]],
+  D:[["USA","Paraguay","2026-06-13T03:00"],["Ausztrália","Törökország","2026-06-14T06:00"],["USA","Ausztrália","2026-06-19T21:00"],["Törökország","Paraguay","2026-06-20T06:00"],["Törökország","USA","2026-06-26T04:00"],["Paraguay","Ausztrália","2026-06-26T04:00"]],
+  E:[["Németország","Curaçao","2026-06-14T19:00"],["Elefántcsontpart","Ecuador","2026-06-15T01:00"],["Németország","Elefántcsontpart","2026-06-20T22:00"],["Ecuador","Curaçao","2026-06-21T02:00"],["Ecuador","Németország","2026-06-25T22:00"],["Curaçao","Elefántcsontpart","2026-06-25T22:00"]],
+  F:[["Hollandia","Japán","2026-06-14T22:00"],["Svédország","Tunézia","2026-06-15T04:00"],["Hollandia","Svédország","2026-06-20T19:00"],["Tunézia","Japán","2026-06-21T06:00"],["Japán","Svédország","2026-06-26T01:00"],["Tunézia","Hollandia","2026-06-26T01:00"]],
+  G:[["Belgium","Egyiptom","2026-06-15T21:00"],["Irán","Új-Zéland","2026-06-16T03:00"],["Belgium","Irán","2026-06-21T21:00"],["Új-Zéland","Egyiptom","2026-06-22T03:00"],["Egyiptom","Irán","2026-06-27T05:00"],["Új-Zéland","Belgium","2026-06-27T05:00"]],
+  H:[["Spanyolország","Zöld-foki-szigetek","2026-06-15T18:00"],["Szaúd-Arábia","Uruguay","2026-06-16T00:00"],["Spanyolország","Szaúd-Arábia","2026-06-21T18:00"],["Uruguay","Zöld-foki-szigetek","2026-06-22T00:00"],["Zöld-foki-szigetek","Szaúd-Arábia","2026-06-27T02:00"],["Uruguay","Spanyolország","2026-06-27T02:00"]],
+  I:[["Franciaország","Szenegál","2026-06-16T21:00"],["Irak","Norvégia","2026-06-17T00:00"],["Franciaország","Irak","2026-06-22T23:00"],["Norvégia","Szenegál","2026-06-23T02:00"],["Norvégia","Franciaország","2026-06-26T21:00"],["Szenegál","Irak","2026-06-26T21:00"]],
+  J:[["Argentína","Algéria","2026-06-17T03:00"],["Ausztria","Jordánia","2026-06-17T06:00"],["Argentína","Ausztria","2026-06-22T19:00"],["Jordánia","Algéria","2026-06-23T05:00"],["Algéria","Ausztria","2026-06-28T04:00"],["Jordánia","Argentína","2026-06-28T04:00"]],
+  K:[["Portugália","Kongói DK","2026-06-17T19:00"],["Üzbegisztán","Kolumbia","2026-06-18T04:00"],["Portugália","Üzbegisztán","2026-06-23T19:00"],["Kolumbia","Kongói DK","2026-06-24T04:00"],["Kolumbia","Portugália","2026-06-28T01:30"],["Kongói DK","Üzbegisztán","2026-06-28T01:30"]],
+  L:[["Anglia","Horvátország","2026-06-17T22:00"],["Ghána","Panama","2026-06-18T01:00"],["Anglia","Ghána","2026-06-23T22:00"],["Panama","Horvátország","2026-06-24T01:00"],["Panama","Anglia","2026-06-27T23:00"],["Horvátország","Ghána","2026-06-27T23:00"]],
+};
+let _mid=1;
+const GROUP_MATCHES=[];
+Object.entries(GS).forEach(([g,games])=>games.forEach(([h,a,t])=>GROUP_MATCHES.push({id:`g${_mid++}`,phase:"csoport",group:g,home:h,away:a,time:t+":00",result:null})));
+const KO_MATCHES=[
+  {id:"r32_1",phase:"R32",label:"R32-1 (A2–B2)",home:"A2",away:"B2",time:"2026-06-28T21:00:00"},
+  {id:"r32_2",phase:"R32",label:"R32-2 (C1–F2)",home:"C1",away:"F2",time:"2026-06-29T19:00:00"},
+  {id:"r32_3",phase:"R32",label:"R32-3",home:"E1",away:"3.h.",time:"2026-06-29T22:30:00"},
+  {id:"r32_4",phase:"R32",label:"R32-4 (F1–C2)",home:"F1",away:"C2",time:"2026-06-30T03:00:00"},
+  {id:"r32_5",phase:"R32",label:"R32-5 (E2–I2)",home:"E2",away:"I2",time:"2026-06-30T19:00:00"},
+  {id:"r32_6",phase:"R32",label:"R32-6",home:"I1",away:"3.h.",time:"2026-06-30T23:00:00"},
+  {id:"r32_7",phase:"R32",label:"R32-7",home:"A1",away:"3.h.",time:"2026-07-01T03:00:00"},
+  {id:"r32_8",phase:"R32",label:"R32-8",home:"L1",away:"3.h.",time:"2026-07-01T18:00:00"},
+  {id:"r32_9",phase:"R32",label:"R32-9",home:"G1",away:"3.h.",time:"2026-07-01T22:00:00"},
+  {id:"r32_10",phase:"R32",label:"R32-10",home:"D1",away:"3.h.",time:"2026-07-02T02:00:00"},
+  {id:"r32_11",phase:"R32",label:"R32-11 (H1–J2)",home:"H1",away:"J2",time:"2026-07-02T21:00:00"},
+  {id:"r32_12",phase:"R32",label:"R32-12 (K2–L2)",home:"K2",away:"L2",time:"2026-07-03T01:00:00"},
+  {id:"r32_13",phase:"R32",label:"R32-13",home:"B1",away:"3.h.",time:"2026-07-03T05:00:00"},
+  {id:"r32_14",phase:"R32",label:"R32-14 (D2–G2)",home:"D2",away:"G2",time:"2026-07-03T20:00:00"},
+  {id:"r32_15",phase:"R32",label:"R32-15 (J1–H2)",home:"J1",away:"H2",time:"2026-07-04T00:00:00"},
+  {id:"r32_16",phase:"R32",label:"R32-16",home:"K1",away:"3.h.",time:"2026-07-04T03:30:00"},
+  {id:"r16_1",phase:"R16",label:"R16-1",home:"R16 csapat",away:"R16 csapat",time:"2026-07-04T19:00:00"},
+  {id:"r16_2",phase:"R16",label:"R16-2",home:"R16 csapat",away:"R16 csapat",time:"2026-07-04T23:00:00"},
+  {id:"r16_3",phase:"R16",label:"R16-3",home:"R16 csapat",away:"R16 csapat",time:"2026-07-05T22:00:00"},
+  {id:"r16_4",phase:"R16",label:"R16-4",home:"R16 csapat",away:"R16 csapat",time:"2026-07-06T02:00:00"},
+  {id:"r16_5",phase:"R16",label:"R16-5",home:"R16 csapat",away:"R16 csapat",time:"2026-07-06T21:00:00"},
+  {id:"r16_6",phase:"R16",label:"R16-6",home:"R16 csapat",away:"R16 csapat",time:"2026-07-07T02:00:00"},
+  {id:"r16_7",phase:"R16",label:"R16-7",home:"R16 csapat",away:"R16 csapat",time:"2026-07-07T18:00:00"},
+  {id:"r16_8",phase:"R16",label:"R16-8",home:"R16 csapat",away:"R16 csapat",time:"2026-07-07T22:00:00"},
+  {id:"qf_1",phase:"NF",label:"NF-1",home:"NF csapat",away:"NF csapat",time:"2026-07-09T22:00:00"},
+  {id:"qf_2",phase:"NF",label:"NF-2",home:"NF csapat",away:"NF csapat",time:"2026-07-10T21:00:00"},
+  {id:"qf_3",phase:"NF",label:"NF-3",home:"NF csapat",away:"NF csapat",time:"2026-07-11T23:00:00"},
+  {id:"qf_4",phase:"NF",label:"NF-4",home:"NF csapat",away:"NF csapat",time:"2026-07-12T03:00:00"},
+  {id:"sf_1",phase:"EF",label:"EF-1",home:"EF csapat",away:"EF csapat",time:"2026-07-14T21:00:00"},
+  {id:"sf_2",phase:"EF",label:"EF-2",home:"EF csapat",away:"EF csapat",time:"2026-07-15T21:00:00"},
+  {id:"b3",phase:"3H",label:"3. helyért",home:"3. hely",away:"3. hely",time:"2026-07-18T23:00:00"},
+  {id:"final",phase:"D",label:"Döntő",home:"Döntős",away:"Döntős",time:"2026-07-19T21:00:00"},
+].map(m=>({...m,result:null}));
+const ALL_MATCHES=[...GROUP_MATCHES,...KO_MATCHES];
+const PHASE_ORDER=["csoport","R32","R16","NF","EF","3H","D"];
+const PHASE_LABEL={csoport:"Csoportmérkőzések",R32:"32-es kör",R16:"Nyolcaddöntők",NF:"Negyeddöntők",EF:"Elődöntők","3H":"3. helyért",D:"Döntő"};
+
+// ── State ────────────────────────────────────────────
+const S = {
+  username:"", tab:"matches", adminTab:"results",
+  phase:"csoport", group:"A",
+  matches:[...ALL_MATCHES], tips:{}, users:[],
+  delConfirm:null, editRes:{},
+  pollTimer:null
+};
+
+// ── Helpers ──────────────────────────────────────────
+function calcPoints(tip,res){
+  if(!res||tip.home===""||tip.away==="")return null;
+  const th=+tip.home,ta=+tip.away,rh=+res.home,ra=+res.away;
+  if(isNaN(th)||isNaN(ta))return null;
+  if(th===rh&&ta===ra)return 3;
+  const td=th-ta,rd=rh-ra;
+  if(Math.sign(td)===Math.sign(rd)&&td===rd)return 2;
+  if(Math.sign(td)===Math.sign(rd))return 1;
+  return 0;
+}
+function isLocked(t){return new Date()>=new Date(new Date(t).getTime()-2*3600000);}
+function fmtTime(iso){
+  const d=new Date(iso);
+  return d.toLocaleDateString("hu-HU",{month:"short",day:"numeric",weekday:"short"})+" "+d.toLocaleTimeString("hu-HU",{hour:"2-digit",minute:"2-digit"});
+}
+function flagImg(name){
+  const c=FLAG_CODES[name];
+  return c?`<img src="https://flagcdn.com/w40/${c}.png" alt="${name}" style="width:22px;height:15px;border-radius:2px;object-fit:cover;flex-shrink:0">`:"";
+}
+function showToast(msg,type="ok"){
+  const t=document.getElementById("toast");
+  if(!t)return;
+  t.textContent=msg; t.className=`toast toast-${type}`; t.style.display="block";
+  setTimeout(()=>t.style.display="none",2500);
+}
+function show(id){["loading","login","main"].forEach(x=>document.getElementById(x).style.display=x===id?"block":"none");}
+
+// ── Poll adatok ──────────────────────────────────────
+async function pollData(){
+  const [results, tips, users] = await Promise.all([
+    dbGet("results"), dbGet("tips"), dbGet("users")
+  ]);
+  S.matches = ALL_MATCHES.map(m => results&&results[m.id] ? {...m,result:results[m.id]} : m);
+  S.tips = tips||{};
+  S.users = users ? Object.keys(users).filter(u=>u!==ADMIN) : [];
+  if(S.username) renderMain();
+}
+
+function startPolling(){
+  if(S.pollTimer) clearInterval(S.pollTimer);
+  S.pollTimer = setInterval(pollData, 5000);
+}
+
+// ── Login ─────────────────────────────────────────────
+document.getElementById("nameInput").addEventListener("input", function(){
+  const isAdm = this.value.trim().toLowerCase()==="admin";
+  const pwInput = document.getElementById("pwInput");
+  const pwHint = document.getElementById("pwHint");
+  if(isAdm){
+    pwInput.placeholder="Admin jelszó";
+    pwInput.removeAttribute("maxlength");
+    pwInput.removeAttribute("inputmode");
+    pwHint.style.display="none";
+  } else {
+    pwInput.placeholder="PIN kód (4 szám)";
+    pwInput.setAttribute("maxlength","4");
+    pwInput.setAttribute("inputmode","numeric");
+    pwHint.style.display="block";
+  }
+});
+document.getElementById("nameInput").addEventListener("keydown", e=>e.key==="Enter"&&doLogin());
+document.getElementById("pwInput").addEventListener("keydown", e=>e.key==="Enter"&&doLogin());
+document.getElementById("loginBtn").addEventListener("click", doLogin);
+
+async function doLogin(){
+  const n = document.getElementById("nameInput").value.trim();
+  const pw = document.getElementById("pwInput").value.trim();
+  const errEl = document.getElementById("pwError");
+  errEl.style.display="none";
+
+  if(!n){ errEl.textContent="Add meg a neved!"; errEl.style.display="block"; return; }
+  if(!pw){ errEl.textContent="Add meg a PIN kódot!"; errEl.style.display="block"; return; }
+
+  // Admin belépés
+  if(n.toLowerCase()==="admin"){
+    if(pw!==ADMIN_PW){ errEl.textContent="Hibás jelszó!"; errEl.style.display="block"; return; }
+    S.username=ADMIN;
+    show("main"); await pollData(); startPolling(); renderMain();
+    return;
+  }
+
+  // Normál felhasználó — PIN ellenőrzés
+  const existing = await dbGet(`users/${n}`);
+  if(existing && existing.pin){
+    // Már regisztrált — ellenőrizzük a PIN-t
+    if(existing.pin !== pw){
+      errEl.textContent="Hibás PIN kód!"; errEl.style.display="block"; return;
+    }
+  } else {
+    // Első belépés — PIN rögzítése
+    if(pw.length < 4){ errEl.textContent="A PIN kód 4 számjegyű legyen!"; errEl.style.display="block"; return; }
+    await dbSet(`users/${n}`, { pin: pw });
+  }
+
+  S.username=n;
+  show("main"); await pollData(); startPolling(); renderMain();
+}
+
+// ── Render ────────────────────────────────────────────
+function renderMain(){
+  const isAdmin = S.username===ADMIN;
+  document.getElementById("header").innerHTML = renderHeader(isAdmin);
+  document.getElementById("tabs").innerHTML = renderTabs(isAdmin);
+  document.getElementById("content").innerHTML = renderContent(isAdmin);
+  document.getElementById("modalContainer").innerHTML = S.delConfirm ? renderModal() : "";
+  bindMainEvents(isAdmin);
+}
+
+function renderHeader(isAdmin){
+  return `<div class="header">
+    <div class="header-left"><span style="font-size:26px">⚽</span>
+      <div><div class="header-title">VB 2026 Tippjáték</div>
+      <div class="header-sub">FIFA World Cup · jún. 11 – júl. 19</div></div>
+    </div>
+    <div class="header-right">
+      <span class="header-user">${isAdmin?"👑 Admin":S.username}</span>
+      <button class="logout-btn" id="logoutBtn">Kilépés</button>
+    </div>
+  </div>`;
+}
+
+function renderTabs(isAdmin){
+  const tabs=[["matches","⚽ Mérkőzések"],["leaderboard","🏅 Ranglista"],...(isAdmin?[["admin","🛠 Admin"]]:[])]
+  return `<div class="tabs">${tabs.map(([k,l])=>`<button class="tab-btn ${S.tab===k?"active":""}" data-tab="${k}">${l}</button>`).join("")}</div>`;
+}
+
+function renderContent(isAdmin){
+  const phases=PHASE_ORDER.filter(p=>S.matches.some(m=>m.phase===p));
+  const visible=S.matches.filter(m=>m.phase===S.phase&&(S.phase!=="csoport"||m.group===S.group));
+  if(S.tab==="matches")     return renderMatches(visible,phases);
+  if(S.tab==="leaderboard") return renderLeaderboard();
+  if(S.tab==="admin"&&isAdmin) return renderAdmin(visible,phases);
+  return "";
+}
+
+function renderPhaseFilters(style){
+  const phases=PHASE_ORDER.filter(p=>S.matches.some(m=>m.phase===p));
+  const groups=[...new Set(S.matches.filter(m=>m.phase==="csoport").map(m=>m.group))].sort();
+  let h=`<div class="phase-filters">`;
+  phases.forEach(p=>h+=`<button class="filter-btn ${S.phase===p?"a"+style:""}" data-phase="${p}">${PHASE_LABEL[p]}</button>`);
+  h+=`</div>`;
+  if(S.phase==="csoport"){
+    h+=`<div class="group-filters">`;
+    groups.forEach(g=>h+=`<button class="group-btn ${S.group===g?"a"+style:""}" data-group="${g}">${g}</button>`);
+    h+=`</div>`;
+  }
+  return h;
+}
+
+function renderMatches(visible,phases){
+  let h=renderPhaseFilters("g");
+  h+=`<button id="saveTipsBtn" style="width:100%;margin-bottom:12px;padding:10px;border-radius:10px;border:none;background:#00c97a;color:#000;font-size:14px;font-weight:700;cursor:pointer;">💾 Tippek mentése</button>`;
+  h+=`<div class="match-list">`;
+  visible.forEach(m=>{
+    const locked=isLocked(m.time);
+    const myTip=(S.tips[S.username]||{})[m.id]||{};
+    const pts=m.result?calcPoints(myTip,m.result):null;
+    const scoreHtml=locked
+      ?`<div class="score-wrap"><div class="score-box">${myTip.home??"-"}</div><span class="score-sep">–</span><div class="score-box">${myTip.away??"-"}</div></div>`
+      :`<div class="score-wrap"><input class="score-input" type="number" min="0" max="20" value="${myTip.home??""}" data-mid="${m.id}" data-side="home"/><span class="score-sep">–</span><input class="score-input" type="number" min="0" max="20" value="${myTip.away??""}" data-mid="${m.id}" data-side="away"/></div>`;
+    const resultRow=m.result
+      ?`<div style="text-align:center;padding:5px 0 6px;font-size:12px;color:#555;border-top:1px solid #222;">Végeredmény: <span style="color:#f0f0f0;font-weight:600;">${m.result.home}–${m.result.away}</span> ${badgeHtml(pts)}</div>`
+      :"";
+    h+=`<div class="match-card">
+      <div class="match-head">
+        <span class="match-info" style="color:#ffffff">${m.group?m.group+" csoport":(m.label||"")} · ${fmtTime(m.time)}</span>
+        <div class="match-badges">
+          ${locked&&!m.result?`<span class="badge badge-locked">Lezárva</span>`:""}
+        </div>
+      </div>
+      <div class="match-body">
+        <span class="team team-home">${m.home}${flagImg(m.home)}</span>
+        ${scoreHtml}
+        <span class="team team-away">${flagImg(m.away)}${m.away}</span>
+      </div>
+      ${resultRow}
+    </div>`;
+  });
+  return h+`</div>`;
+}
+
+function badgeHtml(pts){
+  if(pts===3)return`<span class="badge badge-3">3 pont ✓</span>`;
+  if(pts===2)return`<span class="badge badge-2">2 pont</span>`;
+  if(pts===1)return`<span class="badge badge-1">1 pont</span>`;
+  if(pts===0)return`<span class="badge badge-0">0 pont</span>`;
+  return"";
+}
+
+function getPoints(u){
+  return S.matches.reduce((s,m)=>{
+    if(!m.result)return s;
+    const tip=(S.tips[u]||{})[m.id];if(!tip)return s;
+    const p=calcPoints(tip,m.result);return p!==null?s+p:s;
+  },0);
+}
+
+function renderLeaderboard(){
+  const board=[...S.users].map(u=>({name:u,pts:getPoints(u)})).sort((a,b)=>b.pts-a.pts);
+  const mc=i=>i===0?"#f0a500":i===1?"#aaa":i===2?"#cd7f32":"#444";
+  let h=`<div class="board-list">`;
+  if(!board.length)h+=`<p class="empty">Még nincs résztvevő.</p>`;
+  board.forEach((u,i)=>h+=`<div class="board-row ${u.name===S.username?"me":""}">
+    <span class="rank-badge" style="border:1px solid ${mc(i)}55;color:${mc(i)}">${i+1}</span>
+    <span class="board-name" style="font-weight:${u.name===S.username?700:400}">${u.name}</span>
+    <span class="board-pts" style="color:${i===0?"#f0a500":"#00c97a"}">${u.pts}</span>
+    <span class="board-lbl">pont</span>
+  </div>`);
+  h+=`</div><div class="rules-card"><div class="rules-title">Pontozási szabályok</div>`;
+  [[3,"rgba(0,201,122,.12)","#00c97a","Pontos eredmény"],[2,"rgba(76,163,255,.12)","#4ca3ff","Helyes gólkülönbség + győztes"],[1,"rgba(240,165,0,.12)","#f0a500","Csak a győztes eltalálva"],[0,"rgba(255,82,82,.12)","#ff5252","Téves tipp"]].forEach(([p,bg,col,txt])=>
+    h+=`<div class="rule-row"><span class="rule-badge" style="background:${bg};color:${col}">${p} pont</span><span class="rule-txt">${txt}</span></div>`
+  );
+  return h+`</div>`;
+}
+
+function renderAdmin(visible,phases){
+  let h=`<div class="admin-tabs">
+    <button class="admin-tab ${S.adminTab==="results"?"active":""}" data-atab="results">📋 Eredmények</button>
+    <button class="admin-tab ${S.adminTab==="players"?"active":""}" data-atab="players">👥 Játékosok</button>
+  </div>`;
+  if(S.adminTab==="results"){
+    h+=`<p class="admin-hint">Mérkőzések valós eredményének rögzítése.</p>`+renderPhaseFilters("p");
+    visible.forEach(m=>{
+      const er=S.editRes[m.id]||{};
+      h+=`<div class="admin-card">
+        <div class="admin-head">${m.group?m.group+" csoport":(m.label||"")} · ${fmtTime(m.time)}</div>
+        <div class="admin-body">
+          <span class="team team-home" style="font-size:13px">${m.home}${flagImg(m.home)}</span>
+          <input class="score-input" type="number" min="0" max="20" placeholder="–" value="${er.home??(m.result?.home??'')}" data-res="${m.id}" data-res-side="home" style="border-color:rgba(180,158,255,.33)"/>
+          <span class="score-sep">–</span>
+          <input class="score-input" type="number" min="0" max="20" placeholder="–" value="${er.away??(m.result?.away??'')}" data-res="${m.id}" data-res-side="away" style="border-color:rgba(180,158,255,.33)"/>
+          <span class="team team-away" style="font-size:13px">${flagImg(m.away)}${m.away}</span>
+          <button class="save-btn" data-save="${m.id}">Mentés</button>
+        </div>
+        ${m.result?`<div class="saved-bar">✓ ${m.result.home}–${m.result.away}</div>`:""}
+      </div>`;
+    });
+  }
+  if(S.adminTab==="players"){
+    h+=`<p class="admin-hint">Regisztrált játékosok kezelése.</p>`;
+    if(!S.users.length)h+=`<p class="empty">Még nincs regisztrált játékos.</p>`;
+    S.users.forEach((u,i)=>{
+      const pts=getPoints(u), tc=Object.keys(S.tips[u]||{}).length;
+      h+=`<div class="player-card">
+        <div class="player-avatar">${u[0].toUpperCase()}</div>
+        <div class="player-info"><div class="player-name">${u}</div><div class="player-meta">${tc} tipp · ${pts} pont</div></div>
+        <span class="player-rank">#${i+1}</span>
+        <button class="del-btn" data-del="${u}">🗑 Törlés</button>
+      </div>`;
+    });
+    if(S.users.length){
+      const total=Object.values(S.tips).reduce((s,t)=>s+Object.keys(t).length,0);
+      h+=`<div class="summary"><strong style="color:#b49eff">Összesítés:</strong> ${S.users.length} játékos · ${total} tipp összesen</div>`;
+    }
+  }
+  return h;
+}
+
+function renderModal(){
+  return `<div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-icon">🗑</div>
+      <div class="modal-title">Játékos törlése</div>
+      <div class="modal-text">Biztosan törlöd <strong>${S.delConfirm}</strong> játékost? Minden tippje törlődik.</div>
+      <div class="modal-btns">
+        <button class="modal-cancel" id="cancelDel">Mégse</button>
+        <button class="modal-del" id="confirmDel">Törlés</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function bindMainEvents(isAdmin){
+  document.getElementById("logoutBtn")?.addEventListener("click",()=>{
+    clearInterval(S.pollTimer); S.username=""; S.tab="matches";
+    show("login");
+    document.getElementById("nameInput").value="";
+    document.getElementById("pwInput").value="";
+    document.getElementById("pwWrap").style.display="none";
+  });
+  document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{S.tab=b.dataset.tab;renderMain();}));
+  document.querySelectorAll("[data-atab]").forEach(b=>b.addEventListener("click",()=>{S.adminTab=b.dataset.atab;renderMain();}));
+  document.querySelectorAll("[data-phase]").forEach(b=>b.addEventListener("click",()=>{S.phase=b.dataset.phase;renderMain();}));
+  document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click",()=>{S.group=b.dataset.group;renderMain();}));
+  // Mentés gombok
+  const doSaveAll = async () => {
+    const inputs = document.querySelectorAll(".score-input[data-mid]");
+    const saves = [];
+    inputs.forEach(inp => {
+      const mid=inp.dataset.mid, side=inp.dataset.side, val=inp.value;
+      if(val==="") return;
+      S.tips[S.username]=S.tips[S.username]||{};
+      S.tips[S.username][mid]=S.tips[S.username][mid]||{};
+      S.tips[S.username][mid][side]=val;
+      saves.push(dbSet(`tips/${S.username}/${mid}/${side}`,val));
+    });
+    await Promise.all(saves);
+    showToast("Tippek elmentve ✓");
+  };
+  document.getElementById("saveTipsBtn")?.addEventListener("click", doSaveAll);
+  // Admin result input
+  document.querySelectorAll(".score-input[data-res]").forEach(inp=>{
+    inp.addEventListener("change",()=>{
+      const mid=inp.dataset.res,side=inp.dataset.resSide;
+      S.editRes[mid]=S.editRes[mid]||{};
+      S.editRes[mid][side]=inp.value;
+    });
+  });
+  document.querySelectorAll("[data-save]").forEach(b=>b.addEventListener("click",async()=>{
+    const mid=b.dataset.save, r=S.editRes[mid];
+    if(!r||r.home===undefined||r.away===undefined)return;
+    await dbSet(`results/${mid}`,{home:r.home,away:r.away});
+    showToast("Eredmény elmentve ✓");
+    await pollData();
+  }));
+  document.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>{S.delConfirm=b.dataset.del;renderMain();}));
+  document.getElementById("cancelDel")?.addEventListener("click",()=>{S.delConfirm=null;renderMain();});
+  document.getElementById("confirmDel")?.addEventListener("click",async()=>{
+    const name=S.delConfirm;
+    await dbDel(`users/${name}`);
+    await dbDel(`tips/${name}`);
+    S.delConfirm=null;
+    showToast(`${name} törölve`,"info");
+    await pollData();
+  });
+}
+
+// ── Indítás ───────────────────────────────────────────
+show("login");
+</script>
+</body>
+</html>
