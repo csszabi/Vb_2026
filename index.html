@@ -368,6 +368,7 @@ function renderPhaseFilters(style){
 
 function renderMatches(visible,phases){
   let h=renderPhaseFilters("g");
+  h+=`<button id="saveTipsBtn" style="width:100%;margin-bottom:12px;padding:10px;border-radius:10px;border:none;background:#00c97a;color:#000;font-size:14px;font-weight:700;cursor:pointer;">💾 Tippek mentése</button>`;
   h+=`<div class="match-list">`;
   visible.forEach(m=>{
     const locked=isLocked(m.time);
@@ -376,13 +377,14 @@ function renderMatches(visible,phases){
     const scoreHtml=locked
       ?`<div class="score-wrap"><div class="score-box">${myTip.home??"-"}</div><span class="score-sep">–</span><div class="score-box">${myTip.away??"-"}</div></div>`
       :`<div class="score-wrap"><input class="score-input" type="number" min="0" max="20" value="${myTip.home??""}" data-mid="${m.id}" data-side="home"/><span class="score-sep">–</span><input class="score-input" type="number" min="0" max="20" value="${myTip.away??""}" data-mid="${m.id}" data-side="away"/></div>`;
+    const resultRow=m.result
+      ?`<div style="text-align:center;padding:5px 0 6px;font-size:12px;color:#555;border-top:1px solid #222;">Végeredmény: <span style="color:#f0f0f0;font-weight:600;">${m.result.home}–${m.result.away}</span> ${badgeHtml(pts)}</div>`
+      :"";
     h+=`<div class="match-card">
       <div class="match-head">
         <span class="match-info">${m.group?m.group+" csoport":(m.label||"")} · ${fmtTime(m.time)}</span>
         <div class="match-badges">
           ${locked&&!m.result?`<span class="badge badge-locked">Lezárva</span>`:""}
-          ${m.result?`<span class="badge-result">${m.result.home}–${m.result.away}</span>`:""}
-          ${badgeHtml(pts)}
         </div>
       </div>
       <div class="match-body">
@@ -390,9 +392,10 @@ function renderMatches(visible,phases){
         ${scoreHtml}
         <span class="team team-away">${flagImg(m.away)}${m.away}</span>
       </div>
+      ${resultRow}
     </div>`;
   });
-  return h+`</div>`;
+  return h+`</div><button id="saveTipsBtnBottom" style="width:100%;margin-top:12px;padding:10px;border-radius:10px;border:none;background:#00c97a;color:#000;font-size:14px;font-weight:700;cursor:pointer;">💾 Tippek mentése</button>`;
 }
 
 function badgeHtml(pts){
@@ -498,16 +501,23 @@ function bindMainEvents(isAdmin){
   document.querySelectorAll("[data-atab]").forEach(b=>b.addEventListener("click",()=>{S.adminTab=b.dataset.atab;renderMain();}));
   document.querySelectorAll("[data-phase]").forEach(b=>b.addEventListener("click",()=>{S.phase=b.dataset.phase;renderMain();}));
   document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click",()=>{S.group=b.dataset.group;renderMain();}));
-  // Tipp input — csak blur/change-re ment, nem render-el
-  document.querySelectorAll(".score-input[data-mid]").forEach(inp=>{
-    inp.addEventListener("change",async()=>{
-      const mid=inp.dataset.mid,side=inp.dataset.side,val=inp.value;
+  // Mentés gombok
+  const doSaveAll = async () => {
+    const inputs = document.querySelectorAll(".score-input[data-mid]");
+    const saves = [];
+    inputs.forEach(inp => {
+      const mid=inp.dataset.mid, side=inp.dataset.side, val=inp.value;
+      if(val==="") return;
       S.tips[S.username]=S.tips[S.username]||{};
       S.tips[S.username][mid]=S.tips[S.username][mid]||{};
       S.tips[S.username][mid][side]=val;
-      await dbSet(`tips/${S.username}/${mid}/${side}`,val);
+      saves.push(dbSet(`tips/${S.username}/${mid}/${side}`,val));
     });
-  });
+    await Promise.all(saves);
+    showToast("Tippek elmentve ✓");
+  };
+  document.getElementById("saveTipsBtn")?.addEventListener("click", doSaveAll);
+  document.getElementById("saveTipsBtnBottom")?.addEventListener("click", doSaveAll);
   // Admin result input
   document.querySelectorAll(".score-input[data-res]").forEach(inp=>{
     inp.addEventListener("change",()=>{
