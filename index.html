@@ -209,8 +209,8 @@ function slotLabel(s){
     "m13":"32-13 gy.","m14":"32-14 gy.","m15":"32-15 gy.","m16":"32-16 gy.",
     "r16_1":"R16-1 gy.","r16_2":"R16-2 gy.","r16_3":"R16-3 gy.","r16_4":"R16-4 gy.",
     "r16_5":"R16-5 gy.","r16_6":"R16-6 gy.","r16_7":"R16-7 gy.","r16_8":"R16-8 gy.",
-    "qf_1":"NF-1 gy.","qf_2":"NF-2 gy.","qf_3":"NF-3 gy.","qf_4":"NF-4 gy.",
-    "sf_1":"R8-1 gy.","sf_2":"R8-2 gy.",
+    "qf_1":"R8-1 gy.","qf_2":"R8-2 gy.","qf_3":"R8-3 gy.","qf_4":"R8-4 gy.",
+    "sf_1":"R4-1 gy.","sf_2":"R4-2 gy.",
     "sf_1_loser":"R4-1 veszt.","sf_2_loser":"R4-2 veszt.",  };
   return M[s]||s;
 }
@@ -316,10 +316,11 @@ function matchesWithTeams(matches){
   return step1.map(m=>{
     if(m.phase==="csoport")return m;
     if(!m.hs&&!m.as)return m;
-    if(ov[m.id]?.home||ov[m.id]?.away)return m; // override már alkalmazva
-    const h=q[m.hs]||winner(m.hs)||slotLabel(m.hs);
-    const a=q[m.as]||winner(m.as)||slotLabel(m.as);
-    return{...m,home:h,away:a};
+    if(S.overrideTeams[m.id]?.home||S.overrideTeams[m.id]?.away)return m;
+    // Elődöntő, 3. helyért, döntő: csak győztes feloldása, egyébként marad az alap label
+    const h=q[m.hs]||winner(m.hs)||(step1.find(x=>x.id===m.hs)?.result?null:m.home)||slotLabel(m.hs);
+    const a=q[m.as]||winner(m.as)||(step1.find(x=>x.id===m.as)?.result?null:m.away)||slotLabel(m.as);
+    return{...m,home:h||m.home,away:a||m.away};
   });
 }
 
