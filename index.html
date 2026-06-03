@@ -589,33 +589,30 @@ function renderAdmin(vis){
     h+=renderPhaseFilters("p");
 
     if(S.phase!=="csoport"){
-      h+=`<div class="override-box">
-        <div style="font-size:13px;font-weight:700;color:#b49eff;margin-bottom:8px">✏️ Továbbjutók szerkesztése</div>
-        <p style="color:#888;font-size:12px;margin-bottom:10px">Ha az automatikus feloldás nem helyes, itt manuálisan állíthatod be.</p>
-        <div style="display:flex;flex-direction:column;gap:8px">`;
-      vis.forEach(m=>{
-        const oh=S.overrideTeams[m.id]?.home||m.home;
-        const oa=S.overrideTeams[m.id]?.away||m.away;
-        h+=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-size:11px;color:#888;min-width:80px">${m.label||m.id}</span>
-          <input type="text" value="${oh}" data-override="${m.id}" data-override-side="home" class="ov-input" placeholder="Hazai"/>
-          <span style="color:#444">–</span>
-          <input type="text" value="${oa}" data-override="${m.id}" data-override-side="away" class="ov-input" placeholder="Vendég"/>
-        </div>`;
-      });
-      h+=`</div></div>`;
+      // Nincs külön override szekció
     }
 
     vis.forEach(m=>{
       const er=S.editRes[m.id]||{};
+      const ovH=S.overrideTeams[m.id]?.home||m.home;
+      const ovA=S.overrideTeams[m.id]?.away||m.away;
+      // Ha a csapatnév még nem ismert (slot label), szerkeszthető szövegmező
+      const isKnownH=FLAG_CODES[m.home]!==undefined||S.overrideTeams[m.id]?.home;
+      const isKnownA=FLAG_CODES[m.away]!==undefined||S.overrideTeams[m.id]?.away;
+      const homeField=isKnownH
+        ?`<span class="team team-home" style="font-size:13px">${m.home}${fi(m.home)}</span>`
+        :`<input type="text" value="${ovH}" data-override="${m.id}" data-override-side="home" class="ov-input team-home" placeholder="Hazai csapat" style="flex:1;text-align:right"/>`;
+      const awayField=isKnownA
+        ?`<span class="team team-away" style="font-size:13px">${fi(m.away)}${m.away}</span>`
+        :`<input type="text" value="${ovA}" data-override="${m.id}" data-override-side="away" class="ov-input team-away" placeholder="Vendég csapat" style="flex:1;text-align:left"/>`;
       h+=`<div class="admin-card">
         <div class="admin-head">${m.group?m.group+" csoport":(m.label||"")} · ${fmtTime(m.time)}</div>
         <div class="admin-body">
-          <span class="team team-home" style="font-size:13px">${m.home}${fi(m.home)}</span>
+          ${homeField}
           <input class="score-input" type="number" min="0" max="20" placeholder="–" value="${er.home??(m.result?.home??'')}" data-res="${m.id}" data-res-side="home" style="border-color:rgba(180,158,255,.33)"/>
           <span class="score-sep">–</span>
           <input class="score-input" type="number" min="0" max="20" placeholder="–" value="${er.away??(m.result?.away??'')}" data-res="${m.id}" data-res-side="away" style="border-color:rgba(180,158,255,.33)"/>
-          <span class="team team-away" style="font-size:13px">${fi(m.away)}${m.away}</span>
+          ${awayField}
         </div>
       </div>`;
     });
