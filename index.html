@@ -574,6 +574,7 @@ function renderHdr(isAdmin){
         <div style="font-size:13px;color:#888">${isAdmin?"👑 Admin":S.username}</div>
         ${favHtml}
       </div>
+      <button class="logout-btn" id="themeBtn" style="font-size:16px;padding:4px 10px" title="Téma váltás">🌙</button>
       <button class="logout-btn" id="logoutBtn">Kilépés</button>
     </div>
   </div>`;
@@ -801,7 +802,11 @@ function bindEvents(){
     document.getElementById("pwHint").style.display="block";
   });
 
-  document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{
+  document.getElementById("themeBtn")?.addEventListener("click",()=>{
+    const isLight=document.body.classList.toggle("light");
+    document.getElementById("themeBtn").textContent=isLight?"☀️":"🌙";
+    lsSet("vb26_theme", isLight?"light":"dark");
+  });
     S.tab=b.dataset.tab; lsSet(LS_TAB,S.tab); renderMain();
   }));
   document.querySelectorAll("[data-phase]").forEach(b=>b.addEventListener("click",()=>{S.phase=b.dataset.phase;renderMain();}));
@@ -886,6 +891,9 @@ function bindEvents(){
 
 // ── Indítás ──────────────────────────────
 async function init(){
+  // Téma betöltése
+  if(lsGet("vb26_theme")==="light") document.body.classList.add("light");
+
   const savedUser=lsGet(LS_USER);
   const savedTab=lsGet(LS_TAB);
   if(savedUser){
