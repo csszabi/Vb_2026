@@ -128,7 +128,6 @@ input[type=number]{-moz-appearance:textfield}
         <p id="pwHint" style="color:#f0f0f0;font-size:12px;margin-bottom:10px">A belépéshez adj meg egy felhasználónevet és PIN kódot!</p>
       </div>
       <button class="login-btn" id="loginBtn">Belépés</button>
-      <p style="color:#ccc;font-size:12px">Admin: <code style="background:#1c1c1c;color:#888;padding:1px 6px;border-radius:4px">admin</code></p>
       <p class="pw-error" id="pwError"></p>
     </div>
   </div>
@@ -394,7 +393,7 @@ async function doLogin(){
   if(!pw){err.textContent="Add meg a PIN kódot!";err.style.display="block";return;}
   if(n.toLowerCase()==="admin"){
     if(pw!==ADMIN_PW){err.textContent="Hibás jelszó!";err.style.display="block";return;}
-    S.username=ADMIN;S.tab="admin";
+    S.username=ADMIN;S.tab="results";
   }else{
     const ex=await dbGet(`users/${n}`);
     if(ex&&ex.pin){
@@ -435,7 +434,7 @@ function renderHdr(isAdmin){
 
 function renderTabs(isAdmin){
   const tabs=isAdmin
-    ?[["standings","📊 Tabella"],["leaderboard","🏅 Ranglista"],["admin","🛠 Admin"]]
+    ?[["standings","📊 Tabella"],["leaderboard","🏅 Ranglista"],["results","📋 Eredmények"],["players","👥 Játékosok"]]
     :[["matches","⚽ Mérkőzések"],["standings","📊 Tabella"],["leaderboard","🏅 Ranglista"]];
   return`<div class="tabs">${tabs.map(([k,l])=>`<button class="tab-btn${S.tab===k?" active":""}" data-tab="${k}">${l}</button>`).join("")}</div>`;
 }
@@ -655,8 +654,12 @@ function bindEvents(isAdmin){
     document.getElementById("pwInput").value="";
     const ph=document.getElementById("pwHint");if(ph)ph.style.display="block";
   });
-  document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{S.tab=b.dataset.tab;renderMain();}));
-  document.querySelectorAll("[data-atab]").forEach(b=>b.addEventListener("click",()=>{S.adminTab=b.dataset.atab;renderMain();}));
+  document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{
+    S.tab=b.dataset.tab;
+    // Ha eredmények fülre lép, alapból csoport fázis
+    if(S.tab==="results"&&S.phase==="csoport")S.phase="csoport";
+    renderMain();
+  }));
   document.querySelectorAll("[data-phase]").forEach(b=>b.addEventListener("click",()=>{S.phase=b.dataset.phase;renderMain();}));
   document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click",()=>{S.group=b.dataset.group;renderMain();}));
 
