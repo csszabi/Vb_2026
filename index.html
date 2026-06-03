@@ -716,7 +716,7 @@ function bindEvents(isAdmin){
     });
   });
 
-  // Override csapatnevek — automatikus mentés blur-re
+  // Override csapatnevek — automatikus mentés blur-re + zászló frissítés
   document.querySelectorAll("[data-override]").forEach(inp=>{
     inp.addEventListener("blur",async()=>{
       const mid=inp.dataset.override,side=inp.dataset.overrideSide,val=inp.value.trim();
@@ -724,6 +724,15 @@ function bindEvents(isAdmin){
       S.overrideTeams[mid]=S.overrideTeams[mid]||{};
       S.overrideTeams[mid][side]=val;
       await dbSet(`overrides/${mid}/${side}`,val);
+      // Ha ismert csapatnév, cseréljük le az inputot zászlós szövegre
+      if(FLAG_CODES[val]){
+        const isHome=side==="home";
+        const span=document.createElement("span");
+        span.className=`team ${isHome?"team-home":"team-away"}`;
+        span.style.fontSize="13px";
+        span.innerHTML=isHome?`${val}${fi(val)}`:`${fi(val)}${val}`;
+        inp.replaceWith(span);
+      }
       await pollData();
     });
   });
