@@ -441,6 +441,7 @@ async function doLogin(){
   if(n.toLowerCase()==="admin"){
     if(pw!==ADMIN_PW){err.textContent="Hibás jelszó!";err.style.display="block";return;}
     S.username=ADMIN;
+  S.tab="admin";
   }else{
     const ex=await dbGet(`users/${n}`);
     if(ex&&ex.pin){
@@ -481,7 +482,9 @@ function renderHdr(isAdmin){
 }
 
 function renderTabs(isAdmin){
-  const tabs=[["matches","⚽ Mérkőzések"],["standings","📊 Tabella"],["leaderboard","🏅 Ranglista"],...(isAdmin?[["admin","🛠 Admin"]]:[])]
+  const tabs=isAdmin
+    ?[["leaderboard","🏅 Ranglista"],["admin","🛠 Admin"]]
+    :[["matches","⚽ Mérkőzések"],["standings","📊 Tabella"],["leaderboard","🏅 Ranglista"]];
   return`<div class="tabs">${tabs.map(([k,l])=>`<button class="tab-btn${S.tab===k?" active":""}" data-tab="${k}">${l}</button>`).join("")}</div>`;
 }
 
