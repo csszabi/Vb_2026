@@ -808,7 +808,7 @@ function bindEvents(){
     lsSet("vb26_theme", isLight?"light":"dark");
   });
     S.tab=b.dataset.tab; lsSet(LS_TAB,S.tab); renderMain();
-  });
+  }));
   document.querySelectorAll("[data-phase]").forEach(b=>b.addEventListener("click",()=>{S.phase=b.dataset.phase;renderMain();}));
   document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click",()=>{S.group=b.dataset.group;renderMain();}));
 
