@@ -125,7 +125,7 @@ input[type=number]{-moz-appearance:textfield}
       <input id="nameInput" class="login-input" placeholder="pl. Kovács Péter" autocomplete="off"/>
       <div id="pwWrap">
         <input id="pwInput" class="login-input" type="password" placeholder="PIN kód (4 szám)" maxlength="4" inputmode="numeric"/>
-        <p id="pwHint" style="color:#f0f0f0;font-size:12px;margin-bottom:10px">Az első belépéshez adj meg egy PIN kódot.</p>
+        <p id="pwHint" style="color:#f0f0f0;font-size:12px;margin-bottom:10px">A belépéshez adj meg egy felhasználónevet és PIN kódot!</p>
       </div>
       <button class="login-btn" id="loginBtn">Belépés</button>
       <p style="color:#ccc;font-size:12px">Admin: <code style="background:#1c1c1c;color:#888;padding:1px 6px;border-radius:4px">admin</code></p>
@@ -482,7 +482,7 @@ function renderMatches(vis){
     const aVal=myTip.away??"";
     const score=locked
       ?`<div class="score-wrap"><div class="score-box">${hVal||"-"}</div><span class="score-sep">–</span><div class="score-box">${aVal||"-"}</div></div>`
-      :`<div class="score-wrap"><input class="score-input" type="number" min="0" max="20" value="${hVal}" data-mid="${m.id}" data-side="home"/><span class="score-sep">–</span><input class="score-input" type="number" min="0" max="20" value="${aVal}" data-mid="${m.id}" data-side="away"/></div>`;
+      :`<div class="score-wrap"><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="${hVal}" data-mid="${m.id}" data-side="home" oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1&&this.value[0]==='0')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"/><span class="score-sep">–</span><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="${aVal}" data-mid="${m.id}" data-side="away" oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1&&this.value[0]==='0')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"/></div>`;
     const resRow=`<div class="result-row">${m.result?`Végeredmény: <b>${m.result.home}–${m.result.away}</b> ${badgeHtml(pts)}`:"Végeredmény: –"}</div>`;
     const savedRow=(!locked&&saved)?`<div class="saved-tip-row">✓ Tipp elmentve: ${saved.home}–${saved.away}</div>`:"";
     h+=`<div class="match-card">
@@ -604,9 +604,9 @@ function renderAdmin(vis){
         <div class="admin-head">${m.group?m.group+" csoport":(m.label||"")} · ${fmtTime(m.time)}</div>
         <div class="admin-body">
           ${homeField}
-          <input class="score-input" type="number" min="0" max="20" placeholder="–" value="${er.home??(m.result?.home??'')}" data-res="${m.id}" data-res-side="home" style="border-color:rgba(180,158,255,.33)"/>
+          <input class="score-input" type="text" inputmode="numeric" placeholder="–" value="${er.home??(m.result?.home??'')}" data-res="${m.id}" data-res-side="home" style="border-color:rgba(180,158,255,.33)" oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1&&this.value[0]==='0')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"/>
           <span class="score-sep">–</span>
-          <input class="score-input" type="number" min="0" max="20" placeholder="–" value="${er.away??(m.result?.away??'')}" data-res="${m.id}" data-res-side="away" style="border-color:rgba(180,158,255,.33)"/>
+          <input class="score-input" type="text" inputmode="numeric" placeholder="–" value="${er.away??(m.result?.away??'')}" data-res="${m.id}" data-res-side="away" style="border-color:rgba(180,158,255,.33)" oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1&&this.value[0]==='0')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"/>
           ${awayField}
         </div>
       </div>`;
