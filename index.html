@@ -295,13 +295,26 @@ function matchesWithTeams(matches){
     if(!m||!m.result)return null;
     return +m.result.home>+m.result.away?m.home:(+m.result.away>+m.result.home?m.away:null);
   };
+  const loser=(res,id)=>{
+    const m=res.find(x=>x.id===id);
+    if(!m||!m.result)return null;
+    return +m.result.home>+m.result.away?m.away:(+m.result.away>+m.result.home?m.home:null);
+  };
   let res=matches.map(m=>({...m}));
   for(let pass=0;pass<6;pass++){
     res=res.map(m=>{
       if(m.phase==="csoport")return m;
       if(!m.hs&&!m.as)return m;
-      const h=ov[m.id]?.home||q[m.hs]||winner(res,m.hs)||(m.hs?.startsWith("3rd")?slotLabel(m.hs):null)||m.home||slotLabel(m.hs);
-      const a=ov[m.id]?.away||q[m.as]||winner(res,m.as)||(m.as?.startsWith("3rd")?slotLabel(m.as):null)||m.away||slotLabel(m.as);
+      const resolveSlot=slot=>{
+        if(!slot)return null;
+        if(ov[m.id]?.[slot==="home"?"home":"away"])return null; // override kezeli
+        if(q[slot])return q[slot];
+        if(slot.startsWith("3rd"))return slotLabel(slot);
+        if(slot.endsWith("_loser"))return loser(res,slot.replace("_loser",""));
+        return winner(res,slot)||m.home||slotLabel(slot);
+      };
+      const h=ov[m.id]?.home||resolveSlot(m.hs)||m.home||slotLabel(m.hs);
+      const a=ov[m.id]?.away||resolveSlot(m.as)||m.away||slotLabel(m.as);
       return{...m,home:h,away:a};
     });
   }
@@ -431,7 +444,7 @@ function renderHdr(isAdmin){
 
 function renderTabs(isAdmin){
   const tabs=isAdmin
-    ?[["standings","📊 Tabella"],["leaderboard","🏅 Ranglista"],["results","📋 Eredmények"],["players","👥 Játékosok"]]
+    ?[["results","📋 Eredmények"],["standings","📊 Tabella"],["players","👥 Játékosok"],["leaderboard","🏅 Ranglista"]]
     :[["matches","⚽ Mérkőzések"],["standings","📊 Tabella"],["leaderboard","🏅 Ranglista"]];
   return`<div class="tabs">${tabs.map(([k,l])=>`<button class="tab-btn${S.tab===k?" active":""}" data-tab="${k}">${l}</button>`).join("")}</div>`;
 }
