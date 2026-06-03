@@ -127,7 +127,17 @@ button{cursor:pointer;font-family:inherit}
   </div>
 </div>
 
-<div id="pg-main" style="display:none">
+<div id="pg-fav" style="display:none">
+  <div class="fav-wrap">
+    <div class="fav-card">
+      <div style="text-align:center;font-size:32px;margin-bottom:12px">⚽</div>
+      <div class="fav-title">Válaszd ki a kedvenc csapatodat!</div>
+      <div class="fav-sub">Ez nem módosítható később. Ha csapatod győz, extra pontokat kapsz!</div>
+      <div class="fav-groups" id="favGroups"></div>
+      <button class="fav-confirm" id="favConfirmBtn">✓ Megerősítés</button>
+    </div>
+  </div>
+</div>
   <div id="toast" class="toast"></div>
   <div id="modalWrap"></div>
   <div class="app">
@@ -146,6 +156,22 @@ const ADMIN    = "admin";
 const ADMIN_PW = "Teddypicker1";
 const LS_USER  = "vb26_user";
 const LS_TAB   = "vb26_tab";
+
+// Összes csapat csoportok szerint
+const ALL_TEAMS_BY_GROUP = Object.entries({
+  A:["Mexikó","Dél-Afrika","Dél-Korea","Csehország"],
+  B:["Kanada","Bosznia-Hercegovina","Svájc","Katar"],
+  C:["Brazília","Marokkó","Skócia","Haiti"],
+  D:["USA","Paraguay","Ausztrália","Törökország"],
+  E:["Németország","Curaçao","Elefántcsontpart","Ecuador"],
+  F:["Hollandia","Japán","Svédország","Tunézia"],
+  G:["Belgium","Egyiptom","Irán","Új-Zéland"],
+  H:["Spanyolország","Zöld-foki-szigetek","Szaúd-Arábia","Uruguay"],
+  I:["Franciaország","Szenegál","Norvégia","Irak"],
+  J:["Argentína","Algéria","Ausztria","Jordánia"],
+  K:["Portugália","Kongói DK","Üzbegisztán","Kolumbia"],
+  L:["Anglia","Horvátország","Panama","Ghána"],
+});
 // ─────────────────────────────────────────
 
 const dbGet = async p=>{try{const r=await fetch(`${DB_URL}/${p}.json`);return r.ok?r.json():null;}catch{return null;}};
@@ -157,7 +183,7 @@ function lsSet(k,v){try{localStorage.setItem(k,v);}catch{}}
 function lsDel(k){try{localStorage.removeItem(k);}catch{}}
 
 function showPage(id){
-  ["pg-loading","pg-login","pg-main"].forEach(x=>{
+  ["pg-loading","pg-login","pg-fav","pg-main"].forEach(x=>{
     document.getElementById(x).style.display = x===id ? "block" : "none";
   });
 }
@@ -272,7 +298,54 @@ const S={
   savedTips:{}, overrideTeams:{},
 };
 
-// ── Standings ────────────────────────────
+// Kiesett-e a csapat?
+function isEliminated(team, matches){
+  if(!team) return false;
+  // Győzte-e a VB-t?
+  const final = matches.find(m=>m.id==="final");
+  if(final?.result){
+    const winner = +final.result.home > +final.result.away ? final.home : final.away;
+    if(winner === team) return false; // VB győztes, nem esett ki
+  }
+  // Kieséses meccsekben vesztett-e?
+  const koMatches = matches.filter(m=>m.phase!=="csoport"&&m.result);
+  for(const m of koMatches){
+    const rh=+m.result.home, ra=+m.result.away;
+    const loser = rh>ra ? m.away : (ra>rh ? m.home : null);
+    if(loser===team) return true;
+  }
+  // Csoport: nem jutott tovább (az utolsó csoportmérkőzés lejátszódott de nem találjuk KO-ban)
+  const gms = matches.filter(m=>m.phase==="csoport");
+  const teamGroup = Object.entries(Object.fromEntries(ALL_TEAMS_BY_GROUP)).find(([g,ts])=>ts.includes(team))?.[0];
+  if(teamGroup){
+    const groupPlayed = matches.filter(m=>m.phase==="csoport"&&m.group===teamGroup&&m.result).length;
+    if(groupPlayed>=6){
+      // Szerepel-e valahol a kieséses szakaszban?
+      const inKO = matches.some(m=>m.phase!=="csoport"&&(m.home===team||m.away===team));
+      if(!inKO) return true;
+    }
+  }
+  return false;
+}
+
+// Kedvenc csapat extra pontjai
+function getFavPts(team, matches){
+  if(!team) return 0;
+  let pts = 0;
+  matches.filter(m=>m.result).forEach(m=>{
+    const rh=+m.result.home, ra=+m.result.away;
+    if(rh>ra && m.home===team) pts+=1;
+    else if(ra>rh && m.away===team) pts+=1;
+  });
+  // +5 ha VB győztes
+  const final = matches.find(m=>m.id==="final");
+  if(final?.result){
+    const rh=+final.result.home, ra=+final.result.away;
+    const winner = rh>ra ? final.home : (ra>rh ? final.away : null);
+    if(winner===team) pts+=5;
+  }
+  return pts;
+}
 function groupStandings(group,matches){
   const teams=[...new Set(matches.filter(m=>m.group===group).flatMap(m=>[m.home,m.away]))];
   const s={};
@@ -375,6 +448,7 @@ async function pollData(){
   const base=ALL_MATCHES.map(m=>results&&results[m.id]?{...m,result:results[m.id]}:{...m,result:null});
   S.matches=matchesWithTeams(base);
   S.tips=tips||{};
+  S.users_data=users||{};
   S.users=users?Object.keys(users).filter(u=>u!==ADMIN):[];
   const ae=document.activeElement;
   const busy=ae&&(ae.dataset.mid||ae.dataset.res||ae.dataset.override);
@@ -416,6 +490,12 @@ async function doLogin(){
       await dbSet(`users/${n}`,{pin:pw});
     }
     S.username=n; S.tab="matches";
+    // Új user? Nincs még kedvenc csapat → csapatválasztó
+    if(!ex || !ex.fav){
+      lsSet(LS_USER,n); lsSet(LS_TAB,"matches");
+      showFavPicker();
+      return;
+    }
   }
   lsSet(LS_USER,S.username);
   lsSet(LS_TAB,S.tab);
@@ -425,7 +505,42 @@ async function doLogin(){
   renderMain();
 }
 
-// ── Render ───────────────────────────────
+// ── Kedvenc csapat választó ───────────────
+let selectedFav = null;
+
+function showFavPicker(){
+  showPage("pg-fav");
+  selectedFav = null;
+  const container = document.getElementById("favGroups");
+  container.innerHTML = ALL_TEAMS_BY_GROUP.map(([group, teams])=>`
+    <div>
+      <div class="fav-group-label">${group} CSOPORT</div>
+      <div class="fav-teams">
+        ${teams.map(t=>`
+          <button class="fav-team-btn" data-fav="${t}">
+            ${fi(t,18)} ${t}
+          </button>`).join("")}
+      </div>
+    </div>`).join("");
+
+  container.querySelectorAll(".fav-team-btn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      container.querySelectorAll(".fav-team-btn").forEach(b=>b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selectedFav = btn.dataset.fav;
+      document.getElementById("favConfirmBtn").classList.add("show");
+    });
+  });
+
+  document.getElementById("favConfirmBtn").onclick = async()=>{
+    if(!selectedFav) return;
+    await dbSet(`users/${S.username}`,{pin:(await dbGet(`users/${S.username}`))?.pin||"", fav:selectedFav});
+    await pollData();
+    startPolling();
+    showPage("pg-main");
+    renderMain();
+  };
+}
 function renderMain(){
   const isAdmin=S.username===ADMIN;
   lsSet(LS_TAB,S.tab);
@@ -437,13 +552,21 @@ function renderMain(){
 }
 
 function renderHdr(isAdmin){
+  const fav = S.users_data?.[S.username]?.fav;
+  const elim = fav && isEliminated(fav, S.matches);
+  const favHtml = fav
+    ? `<div style="font-size:11px;color:${elim?"#ff5252":"#00c97a"};display:flex;align-items:center;gap:4px;margin-top:2px">${fi(fav,14)} ${fav}${elim?" (kiesett)":""}</div>`
+    : "";
   return`<div class="header">
     <div class="header-left"><span style="font-size:26px">⚽</span>
       <div><div class="header-title">VB 2026 Tippjáték</div>
       <div class="header-sub">FIFA World Cup · jún.11–júl.19</div></div>
     </div>
     <div style="display:flex;align-items:center;gap:10px">
-      <span style="font-size:13px;color:#888">${isAdmin?"👑 Admin":S.username}</span>
+      <div style="text-align:right">
+        <div style="font-size:13px;color:#888">${isAdmin?"👑 Admin":S.username}</div>
+        ${favHtml}
+      </div>
       <button class="logout-btn" id="logoutBtn">Kilépés</button>
     </div>
   </div>`;
@@ -562,11 +685,14 @@ function renderStandings(){
 }
 
 function getPoints(u){
-  return S.matches.reduce((s,m)=>{
+  const tipPts = S.matches.reduce((s,m)=>{
     if(!m.result)return s;
     const tip=(S.tips[u]||{})[m.id];if(!tip)return s;
     const p=calcPts(tip,m.result);return p!==null?s+p:s;
   },0);
+  const fav=(S.users_data?.[u]?.fav)||null;
+  const favPts=getFavPts(fav,S.matches);
+  return tipPts+favPts;
 }
 
 function renderLeaderboard(){
@@ -574,12 +700,22 @@ function renderLeaderboard(){
   const mc=i=>i===0?"#f0a500":i===1?"#aaa":i===2?"#cd7f32":"#444";
   let h=`<div class="board-list">`;
   if(!board.length)h+=`<p class="empty">Még nincs résztvevő.</p>`;
-  board.forEach((u,i)=>h+=`<div class="board-row${u.name===S.username?" me":""}${i===0?" first":i===1?" second":""}">
-    <span class="rank-circle" style="border:1px solid ${mc(i)}55;color:${mc(i)}">${i+1}</span>
-    <span style="flex:1;font-weight:${u.name===S.username||i<2?700:400};font-size:14px">${u.name}</span>
-    <span style="font-weight:700;font-size:22px;color:${i===0?"#f0a500":"#00c97a"}">${u.pts}</span>
-    <span style="font-size:12px;color:#444">pont</span>
-  </div>`);
+  board.forEach((u,i)=>{
+    const fav=S.users_data?.[u]?.fav;
+    const elim=fav&&isEliminated(fav,S.matches);
+    const favHtml=fav
+      ?`<span style="font-size:11px;color:${elim?"#ff5252":"#888"};display:flex;align-items:center;gap:3px">${fi(fav,14)}${fav}${elim?" (kiesett)":""}</span>`
+      :"";
+    h+=`<div class="board-row${u.name===S.username?" me":""}${i===0?" first":i===1?" second":""}">
+      <span class="rank-circle" style="border:1px solid ${mc(i)}55;color:${mc(i)}">${i+1}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:${u.name===S.username||i<2?700:400};font-size:14px">${u.name}</div>
+        ${favHtml}
+      </div>
+      <span style="font-weight:700;font-size:22px;color:${i===0?"#f0a500":"#00c97a"}">${u.pts}</span>
+      <span style="font-size:12px;color:#444">pont</span>
+    </div>`;
+  });
   h+=`</div><div class="rules-card"><div style="font-weight:700;font-size:13px;color:#00c97a;margin-bottom:8px">Pontozási szabályok</div>`;
   [[3,"rgba(0,201,122,.12)","#00c97a","Pontos eredmény"],[2,"rgba(76,163,255,.12)","#4ca3ff","Helyes gólkülönbség + győztes"],[1,"rgba(240,165,0,.12)","#f0a500","Csak a győztes eltalálva"],[0,"rgba(255,82,82,.12)","#ff5252","Téves tipp"]].forEach(([p,bg,col,txt])=>
     h+=`<div class="rule-row"><span class="rule-badge" style="background:${bg};color:${col}">${p} pont</span><span style="color:#888;font-size:13px">${txt}</span></div>`
