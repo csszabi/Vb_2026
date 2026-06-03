@@ -99,6 +99,39 @@ button{cursor:pointer;font-family:inherit}
 .p4{background:rgba(255,82,82,.1);color:#ff5252}
 .flag-name{display:flex;align-items:center;gap:5px}
 .ov-input{padding:5px 8px;border-radius:7px;border:1px solid rgba(180,158,255,.33);font-size:13px;color:#f0f0f0;background:#222;outline:none}
+/* Light theme */
+body.light{background:#f0f4f0;color:#1a1a1a}
+body.light .main-wrap{border-color:#b2dfdb}
+body.light .header{background:linear-gradient(135deg,#0c1f14,#0f6e56)}
+body.light .tabs{background:#fff;border-bottom-color:#e0f0eb}
+body.light .tab-btn{color:#666}
+body.light .tab-btn.active{color:#00a865;border-bottom-color:#00a865}
+body.light .content{background:#f0f4f0}
+body.light .match-card{background:#fff;border-color:#d4ede3}
+body.light .match-head{background:#e8f5e9;border-bottom-color:#c8e6c9}
+body.light .match-info{color:#2e7d52}
+body.light .team{color:#1a3a2a}
+body.light .score-box{background:#f0f4f0;border-color:#c8e6c9;color:#555}
+body.light .score-input{background:#fff;border-color:#b2dfdb;color:#1a1a1a}
+body.light .result-row{color:#333;border-top-color:#e0f0eb}
+body.light .board-row{background:#fff;border-color:#d4ede3}
+body.light .board-row.me{background:rgba(0,168,101,.1);border-color:rgba(0,168,101,.3)}
+body.light .board-row.first{background:#fff8e1;border-color:rgba(240,165,0,.4)}
+body.light .board-row.second{background:#fafafa;border-color:rgba(150,150,150,.3)}
+body.light .rank-circle{background:#f0f4f0}
+body.light .rules-card,body.light .table-card,body.light .admin-card,body.light .player-card{background:#fff;border-color:#d4ede3}
+body.light .table-title{background:#e8f5e9;border-bottom-color:#c8e6c9}
+body.light .admin-head{background:#ede9f6;color:#534AB7;border-bottom-color:#d4d0ea}
+body.light .standings-table th{color:#555;border-bottom-color:#e0f0eb}
+body.light .standings-table td{color:#1a1a1a;border-bottom-color:#f0f4f0}
+body.light .login-card{background:#fff;border-color:#c8e6c9}
+body.light .login-input{background:#f5f5f5;border-color:#c8e6c9;color:#1a1a1a}
+body.light .filter-btn{border-color:#c8e6c9;color:#555}
+body.light .group-btn{border-color:#c8e6c9;color:#555}
+body.light .ov-input{background:#fff;color:#1a1a1a}
+body.light .modal{background:#fff}
+body.light .score-sep{color:#aaa}
+body.light code{background:#f0f4f0;color:#555}
 </style>
 </head>
 <body>
@@ -141,6 +174,8 @@ button{cursor:pointer;font-family:inherit}
     </div>
   </div>
 </div>
+
+<div id="pg-main" style="display:none">
   <div id="toast" class="toast"></div>
   <div id="modalWrap"></div>
   <div class="app">
@@ -153,34 +188,15 @@ button{cursor:pointer;font-family:inherit}
 </div>
 
 <script>
-// ─────────────────────────────────────────
 const DB_URL   = "https://foci-vb-default-rtdb.europe-west1.firebasedatabase.app";
 const ADMIN    = "admin";
 const ADMIN_PW = "Teddypicker1";
 const LS_USER  = "vb26_user";
 const LS_TAB   = "vb26_tab";
 
-// Összes csapat csoportok szerint
-const ALL_TEAMS_BY_GROUP = Object.entries({
-  A:["Mexikó","Dél-Afrika","Dél-Korea","Csehország"],
-  B:["Kanada","Bosznia-Hercegovina","Svájc","Katar"],
-  C:["Brazília","Marokkó","Skócia","Haiti"],
-  D:["USA","Paraguay","Ausztrália","Törökország"],
-  E:["Németország","Curaçao","Elefántcsontpart","Ecuador"],
-  F:["Hollandia","Japán","Svédország","Tunézia"],
-  G:["Belgium","Egyiptom","Irán","Új-Zéland"],
-  H:["Spanyolország","Zöld-foki-szigetek","Szaúd-Arábia","Uruguay"],
-  I:["Franciaország","Szenegál","Norvégia","Irak"],
-  J:["Argentína","Algéria","Ausztria","Jordánia"],
-  K:["Portugália","Kongói DK","Üzbegisztán","Kolumbia"],
-  L:["Anglia","Horvátország","Panama","Ghána"],
-});
-// ─────────────────────────────────────────
-
 const dbGet = async p=>{try{const r=await fetch(`${DB_URL}/${p}.json`);return r.ok?r.json():null;}catch{return null;}};
 const dbSet = async(p,v)=>{try{await fetch(`${DB_URL}/${p}.json`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)});}catch{}};
 const dbDel = async p=>{try{await fetch(`${DB_URL}/${p}.json`,{method:"DELETE"});}catch{}};
-
 function lsGet(k){try{return localStorage.getItem(k);}catch{return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch{}}
 function lsDel(k){try{localStorage.removeItem(k);}catch{}}
@@ -188,11 +204,10 @@ function lsDel(k){try{localStorage.removeItem(k);}catch{}}
 function showPage(id){
   ["pg-loading","pg-login","pg-fav","pg-main"].forEach(x=>{
     const el=document.getElementById(x);
-    if(el) el.style.display = x===id ? "block" : "none";
+    if(el) el.style.display=x===id?"block":"none";
   });
 }
 
-// ── Adatok ──────────────────────────────
 const FLAG_CODES={
   "Mexikó":"mx","Dél-Afrika":"za","Dél-Korea":"kr","Csehország":"cz",
   "Kanada":"ca","Svájc":"ch","Katar":"qa","Bosznia-Hercegovina":"ba",
@@ -206,6 +221,21 @@ const FLAG_CODES={
   "Argentína":"ar","Algéria":"dz","Ausztria":"at","Jordánia":"jo",
   "Portugália":"pt","Kolumbia":"co","Üzbegisztán":"uz","Kongói DK":"cd",
   "Anglia":"gb-eng","Horvátország":"hr","Panama":"pa","Ghána":"gh",
+};
+
+const TEAMS_BY_GROUP={
+  A:["Mexikó","Dél-Afrika","Dél-Korea","Csehország"],
+  B:["Kanada","Bosznia-Hercegovina","Svájc","Katar"],
+  C:["Brazília","Marokkó","Skócia","Haiti"],
+  D:["USA","Paraguay","Ausztrália","Törökország"],
+  E:["Németország","Curaçao","Elefántcsontpart","Ecuador"],
+  F:["Hollandia","Japán","Svédország","Tunézia"],
+  G:["Belgium","Egyiptom","Irán","Új-Zéland"],
+  H:["Spanyolország","Zöld-foki-szigetek","Szaúd-Arábia","Uruguay"],
+  I:["Franciaország","Szenegál","Norvégia","Irak"],
+  J:["Argentína","Algéria","Ausztria","Jordánia"],
+  K:["Portugália","Kongói DK","Üzbegisztán","Kolumbia"],
+  L:["Anglia","Horvátország","Panama","Ghána"],
 };
 
 const GS={
@@ -278,78 +308,26 @@ const SF=[
   ["sf_1","qf_1","qf_2","2026-07-14T21:00:00"],
   ["sf_2","qf_3","qf_4","2026-07-15T21:00:00"],
 ];
-
 const KO_BASE=[
-  ...R32.map(([id,h,a,t],i)=>({id,phase:"R32",label:`${i+1}. (${slotLabel(h)} – ${slotLabel(a)})`,hs:h,as:a,home:slotLabel(h),away:slotLabel(a),time:t,result:null})),
-  ...R16.map(([id,h,a,t],i)=>({id,phase:"R16",label:`${i+1}. nyolcaddöntő`,hs:h,as:a,home:slotLabel(h),away:slotLabel(a),time:t,result:null})),
-  ...QF.map(([id,h,a,t],i)=>({id,phase:"NF",label:`${i+1}. negyeddöntő`,hs:h,as:a,home:slotLabel(h),away:slotLabel(a),time:t,result:null})),
-  ...SF.map(([id,h,a,t],i)=>({id,phase:"EF",label:`${i+1}. elődöntő`,hs:h,as:a,home:`R8-${i*2+1} gy.`,away:`R8-${i*2+2} gy.`,time:t,result:null})),
-  {id:"b3",phase:"3H",label:"3. helyért",hs:"sf_1_loser",as:"sf_2_loser",home:"R4-1 vesztese",away:"R4-2 vesztese",time:"2026-07-18T23:00:00",result:null},
-  {id:"final",phase:"D",label:"Döntő",hs:"sf_1",as:"sf_2",home:"R4-1 győztese",away:"R4-2 győztese",time:"2026-07-19T21:00:00",result:null},
+  ...R32.map(([id,h,a,t],i)=>({id,phase:"R32",label:`${i+1}. (${slotLabel(h)} \u2013 ${slotLabel(a)})`,hs:h,as:a,home:slotLabel(h),away:slotLabel(a),time:t,result:null})),
+  ...R16.map(([id,h,a,t],i)=>({id,phase:"R16",label:`${i+1}. nyolcadd\u00f6nt\u0151`,hs:h,as:a,home:slotLabel(h),away:slotLabel(a),time:t,result:null})),
+  ...QF.map(([id,h,a,t],i)=>({id,phase:"NF",label:`${i+1}. negyedd\u00f6nt\u0151`,hs:h,as:a,home:slotLabel(h),away:slotLabel(a),time:t,result:null})),
+  ...SF.map(([id,h,a,t],i)=>({id,phase:"EF",label:`${i+1}. el\u0151d\u00f6nt\u0151`,hs:h,as:a,home:"R8-"+(i*2+1)+" gy.",away:"R8-"+(i*2+2)+" gy.",time:t,result:null})),
+  {id:"b3",phase:"3H",label:"3. hely\u00e9rt",hs:"sf_1_loser",as:"sf_2_loser",home:"R4-1 vesztese",away:"R4-2 vesztese",time:"2026-07-18T23:00:00",result:null},
+  {id:"final",phase:"D",label:"D\u00f6nt\u0151",hs:"sf_1",as:"sf_2",home:"R4-1 gy\u0151ztese",away:"R4-2 gy\u0151ztese",time:"2026-07-19T21:00:00",result:null},
 ];
-
 const ALL_MATCHES=[...GROUP_MATCHES,...KO_BASE];
 const PHASE_ORDER=["csoport","R32","R16","NF","EF","3H","D"];
-const PHASE_LABEL={csoport:"Csoportmérkőzések",R32:"32-es kör",R16:"Nyolcaddöntők",NF:"Negyeddöntők",EF:"Elődöntők","3H":"3. helyért",D:"Döntő"};
+const PHASE_LABEL={csoport:"Csoportm\u00e9rk\u0151z\u00e9sek",R32:"32-es k\u00f6r",R16:"Nyolcadd\u00f6nt\u0151k",NF:"Negyedd\u00f6nt\u0151k",EF:"El\u0151d\u00f6nt\u0151k","3H":"3. hely\u00e9rt",D:"D\u00f6nt\u0151"};
 const GROUPS=["A","B","C","D","E","F","G","H","I","J","K","L"];
 
-// ── State ────────────────────────────────
 const S={
-  username:"", tab:"matches",
-  phase:"csoport", group:"A",
-  matches:[...ALL_MATCHES], tips:{}, users:[],
-  delConfirm:null, editRes:{}, pollTimer:null,
-  savedTips:{}, overrideTeams:{},
+  username:"",tab:"matches",phase:"csoport",group:"A",
+  matches:[...ALL_MATCHES],tips:{},users_data:{},users:[],
+  delConfirm:null,editRes:{},pollTimer:null,
+  savedTips:{},overrideTeams:{},
 };
 
-// Kiesett-e a csapat?
-function isEliminated(team, matches){
-  if(!team) return false;
-  // Győzte-e a VB-t?
-  const final = matches.find(m=>m.id==="final");
-  if(final?.result){
-    const winner = +final.result.home > +final.result.away ? final.home : final.away;
-    if(winner === team) return false; // VB győztes, nem esett ki
-  }
-  // Kieséses meccsekben vesztett-e?
-  const koMatches = matches.filter(m=>m.phase!=="csoport"&&m.result);
-  for(const m of koMatches){
-    const rh=+m.result.home, ra=+m.result.away;
-    const loser = rh>ra ? m.away : (ra>rh ? m.home : null);
-    if(loser===team) return true;
-  }
-  // Csoport: nem jutott tovább (az utolsó csoportmérkőzés lejátszódott de nem találjuk KO-ban)
-  const gms = matches.filter(m=>m.phase==="csoport");
-  const teamGroup = Object.entries(Object.fromEntries(ALL_TEAMS_BY_GROUP)).find(([g,ts])=>ts.includes(team))?.[0];
-  if(teamGroup){
-    const groupPlayed = matches.filter(m=>m.phase==="csoport"&&m.group===teamGroup&&m.result).length;
-    if(groupPlayed>=6){
-      // Szerepel-e valahol a kieséses szakaszban?
-      const inKO = matches.some(m=>m.phase!=="csoport"&&(m.home===team||m.away===team));
-      if(!inKO) return true;
-    }
-  }
-  return false;
-}
-
-// Kedvenc csapat extra pontjai
-function getFavPts(team, matches){
-  if(!team) return 0;
-  let pts = 0;
-  matches.filter(m=>m.result).forEach(m=>{
-    const rh=+m.result.home, ra=+m.result.away;
-    if(rh>ra && m.home===team) pts+=1;
-    else if(ra>rh && m.away===team) pts+=1;
-  });
-  // +5 ha VB győztes
-  const final = matches.find(m=>m.id==="final");
-  if(final?.result){
-    const rh=+final.result.home, ra=+final.result.away;
-    const winner = rh>ra ? final.home : (ra>rh ? final.away : null);
-    if(winner===team) pts+=5;
-  }
-  return pts;
-}
 function groupStandings(group,matches){
   const teams=[...new Set(matches.filter(m=>m.group===group).flatMap(m=>[m.home,m.away]))];
   const s={};
@@ -378,9 +356,9 @@ function getQualified(matches){
   GROUPS.forEach(g=>{
     const st=groupStandings(g,matches);
     const played=matches.filter(m=>m.phase==="csoport"&&m.group===g&&m.result).length;
-    if(played>=6){q[`${g}1`]=st[0]?.name;q[`${g}2`]=st[1]?.name;q[`${g}3`]=st[2]?.name;}
+    if(played>=6){q[g+"1"]=st[0]&&st[0].name;q[g+"2"]=st[1]&&st[1].name;q[g+"3"]=st[2]&&st[2].name;}
   });
-  bestThirds(matches).forEach((t,i)=>q[`3rd_${i+1}`]=t.name);
+  bestThirds(matches).forEach((t,i)=>q["3rd_"+(i+1)]=t.name);
   return q;
 }
 function matchesWithTeams(matches){
@@ -408,15 +386,55 @@ function matchesWithTeams(matches){
         if(slot.endsWith("_loser"))return loser(res,slot.replace("_loser",""));
         return winner(res,slot);
       };
-      const h=ov[m.id]?.home||resolveSlot(m.hs)||m.home;
-      const a=ov[m.id]?.away||resolveSlot(m.as)||m.away;
+      const h=ov[m.id]&&ov[m.id].home||resolveSlot(m.hs)||m.home;
+      const a=ov[m.id]&&ov[m.id].away||resolveSlot(m.as)||m.away;
       return{...m,home:h||slotLabel(m.hs),away:a||slotLabel(m.as)};
     });
   }
   return res;
 }
 
-// ── Helpers ──────────────────────────────
+function isEliminated(team,matches){
+  if(!team)return false;
+  const final=matches.find(m=>m.id==="final");
+  if(final&&final.result){
+    const rh=+final.result.home,ra=+final.result.away;
+    const w=rh>ra?final.home:(ra>rh?final.away:null);
+    if(w===team)return false;
+  }
+  for(const m of matches.filter(m=>m.phase!=="csoport"&&m.result)){
+    const rh=+m.result.home,ra=+m.result.away;
+    const l=rh>ra?m.away:(ra>rh?m.home:null);
+    if(l===team)return true;
+  }
+  const teamGroup=Object.entries(TEAMS_BY_GROUP).find(([g,ts])=>ts.includes(team));
+  if(teamGroup){
+    const g=teamGroup[0];
+    const played=matches.filter(m=>m.phase==="csoport"&&m.group===g&&m.result).length;
+    if(played>=6){
+      const inKO=matches.some(m=>m.phase!=="csoport"&&(m.home===team||m.away===team));
+      if(!inKO)return true;
+    }
+  }
+  return false;
+}
+function getFavPts(team,matches){
+  if(!team)return 0;
+  let pts=0;
+  matches.filter(m=>m.result).forEach(m=>{
+    const rh=+m.result.home,ra=+m.result.away;
+    if(rh>ra&&m.home===team)pts+=1;
+    else if(ra>rh&&m.away===team)pts+=1;
+  });
+  const final=matches.find(m=>m.id==="final");
+  if(final&&final.result){
+    const rh=+final.result.home,ra=+final.result.away;
+    const w=rh>ra?final.home:(ra>rh?final.away:null);
+    if(w===team)pts+=5;
+  }
+  return pts;
+}
+
 function calcPts(tip,res){
   if(!res||tip.home===""||tip.away==="")return null;
   const th=+tip.home,ta=+tip.away,rh=+res.home,ra=+res.away;
@@ -432,28 +450,31 @@ function fmtTime(iso){
   const d=new Date(iso);
   return d.toLocaleDateString("hu-HU",{month:"short",day:"numeric",weekday:"short"})+" "+d.toLocaleTimeString("hu-HU",{hour:"2-digit",minute:"2-digit"});
 }
-function fi(name,size=22){
+function fi(name,size){
+  size=size||22;
   const c=FLAG_CODES[name];
-  return c?`<img src="https://flagcdn.com/w40/${c}.png" alt="${name}" style="width:${size}px;height:${Math.round(size*.67)}px;border-radius:2px;object-fit:cover;flex-shrink:0">`:"";}
-function showToast(msg,type="ok"){
+  return c?'<img src="https://flagcdn.com/w40/'+c+'.png" alt="'+name+'" style="width:'+size+'px;height:'+Math.round(size*.67)+'px;border-radius:2px;object-fit:cover;flex-shrink:0">':"";
+}
+function showToast(msg,type){
+  type=type||"ok";
   const t=document.getElementById("toast");
   if(!t)return;
-  t.textContent=msg;t.className=`toast toast-${type}`;t.style.display="block";
-  setTimeout(()=>t.style.display="none",2500);
+  t.textContent=msg;t.className="toast toast-"+type;t.style.display="block";
+  setTimeout(function(){t.style.display="none";},2500);
 }
-const OINP=`oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1&&this.value[0]==='0')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"`;
+const OINP='oninput="this.value=this.value.replace(/[^0-9]/g,\'\');if(this.value.length>1&&this.value[0]===\'0\')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"';
 
-// ── Poll ─────────────────────────────────
 async function pollData(){
-  const[results,tips,users,overrides]=await Promise.all([
-    dbGet("results"),dbGet("tips"),dbGet("users"),dbGet("overrides")
-  ]);
+  const results=await dbGet("results");
+  const tips=await dbGet("tips");
+  const users=await dbGet("users");
+  const overrides=await dbGet("overrides");
   S.overrideTeams=overrides||{};
-  const base=ALL_MATCHES.map(m=>results&&results[m.id]?{...m,result:results[m.id]}:{...m,result:null});
+  const base=ALL_MATCHES.map(function(m){return results&&results[m.id]?Object.assign({},m,{result:results[m.id]}):Object.assign({},m,{result:null});});
   S.matches=matchesWithTeams(base);
   S.tips=tips||{};
   S.users_data=users||{};
-  S.users=users?Object.keys(users).filter(u=>u!==ADMIN):[];
+  S.users=users?Object.keys(users).filter(function(u){return u!==ADMIN;}):[];
   const ae=document.activeElement;
   const busy=ae&&(ae.dataset.mid||ae.dataset.res||ae.dataset.override);
   if(S.username&&!busy)renderMain();
@@ -463,16 +484,26 @@ function startPolling(){
   S.pollTimer=setInterval(pollData,5000);
 }
 
-// ── Login ────────────────────────────────
+function getPoints(u){
+  const tipPts=S.matches.reduce(function(s,m){
+    if(!m.result)return s;
+    const tip=(S.tips[u]||{})[m.id];if(!tip)return s;
+    const p=calcPts(tip,m.result);return p!==null?s+p:s;
+  },0);
+  const fav=(S.users_data[u]&&S.users_data[u].fav)||null;
+  return tipPts+getFavPts(fav,S.matches);
+}
+
+// Login
 document.getElementById("nameInput").addEventListener("input",function(){
   const isAdm=this.value.trim().toLowerCase()==="admin";
   const pi=document.getElementById("pwInput");
   const ph=document.getElementById("pwHint");
-  if(isAdm){pi.placeholder="Admin jelszó";pi.removeAttribute("maxlength");pi.removeAttribute("inputmode");ph.style.display="none";}
-  else{pi.placeholder="PIN kód (4 szám)";pi.setAttribute("maxlength","4");pi.setAttribute("inputmode","numeric");ph.style.display="block";}
+  if(isAdm){pi.placeholder="Admin jelsz\u00f3";pi.removeAttribute("maxlength");pi.removeAttribute("inputmode");ph.style.display="none";}
+  else{pi.placeholder="PIN k\u00f3d (4 sz\u00e1m)";pi.setAttribute("maxlength","4");pi.setAttribute("inputmode","numeric");ph.style.display="block";}
 });
-document.getElementById("nameInput").addEventListener("keydown",e=>e.key==="Enter"&&doLogin());
-document.getElementById("pwInput").addEventListener("keydown",e=>e.key==="Enter"&&doLogin());
+document.getElementById("nameInput").addEventListener("keydown",function(e){if(e.key==="Enter")doLogin();});
+document.getElementById("pwInput").addEventListener("keydown",function(e){if(e.key==="Enter")doLogin();});
 document.getElementById("loginBtn").addEventListener("click",doLogin);
 
 async function doLogin(){
@@ -481,73 +512,53 @@ async function doLogin(){
   const err=document.getElementById("pwError");
   err.style.display="none";
   if(!n){err.textContent="Add meg a neved!";err.style.display="block";return;}
-  if(!pw){err.textContent="Add meg a PIN kódot!";err.style.display="block";return;}
+  if(!pw){err.textContent="Add meg a PIN k\u00f3dot!";err.style.display="block";return;}
   if(n.toLowerCase()==="admin"){
-    if(pw!==ADMIN_PW){err.textContent="Hibás jelszó!";err.style.display="block";return;}
-    S.username=ADMIN; S.tab="results";
-  }else{
-    const ex=await dbGet(`users/${n}`);
-    if(ex&&ex.pin){
-      if(ex.pin!==pw){err.textContent="Hibás PIN kód!";err.style.display="block";return;}
-    }else{
-      if(pw.length<4){err.textContent="A PIN kód 4 számjegyű legyen!";err.style.display="block";return;}
-      await dbSet(`users/${n}`,{pin:pw});
-    }
-    S.username=n; S.tab="matches";
-    // Új user? Nincs még kedvenc csapat → csapatválasztó
-    if(!ex || !ex.fav){
-      lsSet(LS_USER,n); lsSet(LS_TAB,"matches");
-      showFavPicker();
-      return;
-    }
+    if(pw!==ADMIN_PW){err.textContent="Hib\u00e1s jelsz\u00f3!";err.style.display="block";return;}
+    S.username=ADMIN;S.tab="results";
+    lsSet(LS_USER,ADMIN);lsSet(LS_TAB,"results");
+    showPage("pg-main");await pollData();startPolling();renderMain();
+    return;
   }
-  lsSet(LS_USER,S.username);
-  lsSet(LS_TAB,S.tab);
-  showPage("pg-main");
-  await pollData();
-  startPolling();
-  renderMain();
+  const ex=await dbGet("users/"+n);
+  if(ex&&ex.pin){
+    if(ex.pin!==pw){err.textContent="Hib\u00e1s PIN k\u00f3d!";err.style.display="block";return;}
+    S.username=n;S.tab="matches";
+    lsSet(LS_USER,n);lsSet(LS_TAB,"matches");
+    if(!ex.fav){showFavPicker();return;}
+    showPage("pg-main");await pollData();startPolling();renderMain();
+  } else {
+    if(pw.length<4){err.textContent="A PIN k\u00f3d 4 sz\u00e1mjegy\u0171 legyen!";err.style.display="block";return;}
+    await dbSet("users/"+n,{pin:pw});
+    S.username=n;S.tab="matches";
+    lsSet(LS_USER,n);lsSet(LS_TAB,"matches");
+    showFavPicker();
+  }
 }
 
 function showFavPicker(){
   showPage("pg-fav");
-  // Feltöltjük a legördülő menüt JS-sel
-  const sel = document.getElementById("favSelect");
-  sel.innerHTML = '<option value="">– Válassz csapatot –</option>';
-  const teams = {
-    A:["Mexikó","Dél-Afrika","Dél-Korea","Csehország"],
-    B:["Kanada","Bosznia-Hercegovina","Svájc","Katar"],
-    C:["Brazília","Marokkó","Skócia","Haiti"],
-    D:["USA","Paraguay","Ausztrália","Törökország"],
-    E:["Németország","Curaçao","Elefántcsontpart","Ecuador"],
-    F:["Hollandia","Japán","Svédország","Tunézia"],
-    G:["Belgium","Egyiptom","Irán","Új-Zéland"],
-    H:["Spanyolország","Zöld-foki-szigetek","Szaúd-Arábia","Uruguay"],
-    I:["Franciaország","Szenegál","Norvégia","Irak"],
-    J:["Argentína","Algéria","Ausztria","Jordánia"],
-    K:["Portugália","Kongói DK","Üzbegisztán","Kolumbia"],
-    L:["Anglia","Horvátország","Panama","Ghána"],
-  };
-  Object.entries(teams).forEach(([g, ts])=>{
-    const og = document.createElement("optgroup");
-    og.label = g + " csoport";
-    ts.forEach(t=>{ const o=document.createElement("option"); o.value=t; o.textContent=t; og.appendChild(o); });
+  const sel=document.getElementById("favSelect");
+  sel.innerHTML='<option value="">\u2013 V\u00e1lassz csapatot \u2013</option>';
+  Object.entries(TEAMS_BY_GROUP).forEach(function(entry){
+    const g=entry[0],ts=entry[1];
+    const og=document.createElement("optgroup");
+    og.label=g+" csoport";
+    ts.forEach(function(t){const o=document.createElement("option");o.value=t;o.textContent=t;og.appendChild(o);});
     sel.appendChild(og);
   });
-
-  document.getElementById("favConfirmBtn").onclick = async()=>{
-    const val = document.getElementById("favSelect").value;
-    if(!val) return;
-    const existing = await dbGet(`users/${S.username}`);
-    await dbSet(`users/${S.username}`,{...(existing||{}), fav:val});
-    S.tab = "matches";
-    lsSet(LS_TAB,"matches");
-    await pollData();
-    startPolling();
-    showPage("pg-main");
-    renderMain();
+  document.getElementById("favConfirmBtn").onclick=async function(){
+    const val=document.getElementById("favSelect").value;
+    if(!val)return;
+    const existing=await dbGet("users/"+S.username);
+    await dbSet("users/"+S.username,Object.assign({},existing||{},{fav:val}));
+    S.tab="matches";lsSet(LS_TAB,"matches");
+    await pollData();startPolling();
+    showPage("pg-main");renderMain();
   };
 }
+
+// Render
 function renderMain(){
   const isAdmin=S.username===ADMIN;
   lsSet(LS_TAB,S.tab);
@@ -559,341 +570,261 @@ function renderMain(){
 }
 
 function renderHdr(isAdmin){
-  const fav = (S.users_data?.[S.username]?.fav)||null;
-  const elim = fav && isEliminated(fav, S.matches);
-  const favHtml = fav
-    ? `<div style="font-size:11px;color:${elim?"#ff5252":"#00c97a"};display:flex;align-items:center;gap:4px;margin-top:2px">${fi(fav,14)} ${fav}${elim?" (kiesett)":""}</div>`
-    : "";
-  return`<div class="header">
-    <div class="header-left"><span style="font-size:26px">⚽</span>
-      <div><div class="header-title">VB 2026 Tippjáték</div>
-      <div class="header-sub">FIFA World Cup · jún.11–júl.19</div></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <div style="text-align:right">
-        <div style="font-size:13px;color:#888">${isAdmin?"👑 Admin":S.username}</div>
-        ${favHtml}
-      </div>
-      <button class="logout-btn" id="themeBtn" style="font-size:16px;padding:4px 10px" title="Téma váltás">🌙</button>
-      <button class="logout-btn" id="logoutBtn">Kilépés</button>
-    </div>
-  </div>`;
+  const fav=(S.users_data[S.username]&&S.users_data[S.username].fav)||null;
+  const elim=fav&&isEliminated(fav,S.matches);
+  const favHtml=fav
+    ?'<div style="font-size:11px;color:'+(elim?"#ff5252":"#00c97a")+';display:flex;align-items:center;gap:4px;margin-top:2px">'+fi(fav,14)+" "+fav+(elim?" (kiesett)":"")+"</div>"
+    :"";
+  return '<div class="header">'
+    +'<div class="header-left"><span style="font-size:26px">&#x26BD;</span>'
+    +'<div><div class="header-title">VB 2026 Tippj\u00e1t\u00e9k</div>'
+    +'<div class="header-sub">FIFA World Cup &middot; j\u00fan.11&ndash;j\u00fal.19</div></div></div>'
+    +'<div style="display:flex;align-items:center;gap:8px">'
+    +'<div style="text-align:right"><div style="font-size:13px;color:#888">'+(isAdmin?"&#x1F451; Admin":S.username)+"</div>"+favHtml+"</div>"
+    +'<button class="logout-btn" id="themeBtn" style="font-size:16px;padding:4px 8px" title="T\u00e9ma">'+(document.body.classList.contains("light")?"&#x2600;&#xFE0F;":"&#x1F319;")+"</button>"
+    +'<button class="logout-btn" id="logoutBtn">Kil\u00e9p\u00e9s</button>'
+    +"</div></div>";
 }
 
 function renderTabs(isAdmin){
   const tabs=isAdmin
-    ?[["results","📋 Eredmények"],["standings","📊 Tabella"],["players","👥 Játékosok"],["leaderboard","🏅 Ranglista"]]
-    :[["matches","⚽ Mérkőzések"],["standings","📊 Tabella"],["leaderboard","🏅 Ranglista"]];
-  return`<div class="tabs">${tabs.map(([k,l])=>`<button class="tab-btn${S.tab===k?" active":""}" data-tab="${k}">${l}</button>`).join("")}</div>`;
+    ?[["results","\uD83D\uDCCB Eredm\u00e9nyek"],["standings","\uD83D\uDCCA Tabella"],["players","\uD83D\uDC65 J\u00e1t\u00e9kosok"],["leaderboard","\uD83C\uDFC5 Ranglista"]]
+    :[["matches","\u26BD M\u00e9rk\u0151z\u00e9sek"],["standings","\uD83D\uDCCA Tabella"],["leaderboard","\uD83C\uDFC5 Ranglista"]];
+  return '<div class="tabs">'+tabs.map(function(t){return '<button class="tab-btn'+(S.tab===t[0]?" active":"")+ '" data-tab="'+t[0]+'">'+t[1]+"</button>";}).join("")+"</div>";
 }
 
 function renderContent(){
-  const vis=S.matches.filter(m=>m.phase===S.phase&&(S.phase!=="csoport"||m.group===S.group));
-  if(S.tab==="matches")    return renderMatches(vis);
-  if(S.tab==="standings")  return renderStandings();
+  const vis=S.matches.filter(function(m){return m.phase===S.phase&&(S.phase!=="csoport"||m.group===S.group);});
+  if(S.tab==="matches")return renderMatches(vis);
+  if(S.tab==="standings")return renderStandings();
   if(S.tab==="leaderboard")return renderLeaderboard();
-  if(S.tab==="results")    return renderResults();
-  if(S.tab==="players")    return renderPlayers();
-  return`<p class="empty">Nincs tartalom.</p>`;
+  if(S.tab==="results")return renderResults();
+  if(S.tab==="players")return renderPlayers();
+  return '<p class="empty">Nincs tartalom.</p>';
 }
 
 function renderPhaseFilters(style){
-  const phases=PHASE_ORDER.filter(p=>S.matches.some(m=>m.phase===p));
-  let h=`<div class="phase-filters">`;
-  phases.forEach(p=>h+=`<button class="filter-btn${S.phase===p?" a"+style:""}" data-phase="${p}">${PHASE_LABEL[p]}</button>`);
-  h+=`</div>`;
+  const phases=PHASE_ORDER.filter(function(p){return S.matches.some(function(m){return m.phase===p;});});
+  let h='<div class="phase-filters">';
+  phases.forEach(function(p){h+='<button class="filter-btn'+(S.phase===p?" a"+style:"")+'" data-phase="'+p+'">'+PHASE_LABEL[p]+"</button>";});
+  h+="</div>";
   if(S.phase==="csoport"){
-    h+=`<div class="group-filters">`;
-    GROUPS.forEach(g=>h+=`<button class="group-btn${S.group===g?" a"+style:""}" data-group="${g}">${g}</button>`);
-    h+=`</div>`;
+    h+='<div class="group-filters">';
+    GROUPS.forEach(function(g){h+='<button class="group-btn'+(S.group===g?" a"+style:"")+'" data-group="'+g+'">'+g+"</button>";});
+    h+="</div>";
   }
   return h;
 }
 
 function badgeHtml(p){
-  if(p===3)return`<span class="badge badge-3">3 pont ✓</span>`;
-  if(p===2)return`<span class="badge badge-2">2 pont</span>`;
-  if(p===1)return`<span class="badge badge-1">1 pont</span>`;
-  if(p===0)return`<span class="badge badge-0">0 pont</span>`;
+  if(p===3)return'<span class="badge badge-3">3 pont &#x2713;</span>';
+  if(p===2)return'<span class="badge badge-2">2 pont</span>';
+  if(p===1)return'<span class="badge badge-1">1 pont</span>';
+  if(p===0)return'<span class="badge badge-0">0 pont</span>';
   return"";
 }
 
 function renderMatches(vis){
-  let h=renderPhaseFilters("g");
-  h+=`<div class="match-list">`;
-  vis.forEach(m=>{
+  let h=renderPhaseFilters("g")+'<div class="match-list">';
+  vis.forEach(function(m){
     const locked=isLocked(m.time);
     const myTip=(S.tips[S.username]||{})[m.id]||{};
     const pts=m.result?calcPts(myTip,m.result):null;
     const saved=S.savedTips[m.id];
-    const hVal=myTip.home??"";
-    const aVal=myTip.away??"";
+    const hVal=myTip.home||"";
+    const aVal=myTip.away||"";
     const score=locked
-      ?`<div class="score-wrap"><div class="score-box">${hVal||"-"}</div><span class="score-sep">–</span><div class="score-box">${aVal||"-"}</div></div>`
-      :`<div class="score-wrap"><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="${hVal}" data-mid="${m.id}" data-side="home" ${OINP}/><span class="score-sep">–</span><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="${aVal}" data-mid="${m.id}" data-side="away" ${OINP}/></div>`;
-    const resRow=`<div class="result-row">${m.result?`Végeredmény: <b>${m.result.home}–${m.result.away}</b> ${badgeHtml(pts)}`:"Végeredmény: –"}</div>`;
-    const savedRow=(!locked&&saved)?`<div class="saved-tip-row">✓ Tipp elmentve: ${saved.home}–${saved.away}</div>`:"";
-    h+=`<div class="match-card">
-      <div class="match-head">
-        <span class="match-info">${m.group?m.group+" csoport":(m.label||"")} · ${fmtTime(m.time)}</span>
-        <div>${locked&&!m.result?`<span class="badge badge-locked">Lezárva</span>`:""}</div>
-      </div>
-      <div class="match-body">
-        <span class="team team-home">${m.home}${fi(m.home)}</span>
-        ${score}
-        <span class="team team-away">${fi(m.away)}${m.away}</span>
-      </div>
-      ${resRow}${savedRow}
-    </div>`;
+      ?'<div class="score-wrap"><div class="score-box">'+(hVal||"-")+'</div><span class="score-sep">\u2013</span><div class="score-box">'+(aVal||"-")+"</div></div>"
+      :'<div class="score-wrap"><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="'+hVal+'" data-mid="'+m.id+'" data-side="home" '+OINP+'/><span class="score-sep">\u2013</span><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="'+aVal+'" data-mid="'+m.id+'" data-side="away" '+OINP+"/></div>";
+    const resRow='<div class="result-row">'+(m.result?"V\u00e9geredm\u00e9ny: <b>"+m.result.home+"\u2013"+m.result.away+"</b> "+badgeHtml(pts):"V\u00e9geredm\u00e9ny: \u2013")+"</div>";
+    const savedRow=(!locked&&saved)?'<div class="saved-tip-row">&#x2713; Tipp elmentve: '+saved.home+"\u2013"+saved.away+"</div>":"";
+    h+='<div class="match-card"><div class="match-head"><span class="match-info">'+(m.group?m.group+" csoport":(m.label||""))+" &middot; "+fmtTime(m.time)+'</span><div>'+(locked&&!m.result?'<span class="badge badge-locked">Lez\u00e1rva</span>':"")+"</div></div>"
+      +'<div class="match-body"><span class="team team-home">'+m.home+fi(m.home)+"</span>"+score+'<span class="team team-away">'+fi(m.away)+m.away+"</span></div>"
+      +resRow+savedRow+"</div>";
   });
-  return h+`</div>`;
+  return h+"</div>";
 }
 
 function renderStandings(){
-  let h=`<div class="group-filters" style="margin-bottom:16px">`;
-  GROUPS.forEach(g=>h+=`<button class="group-btn${S.group===g?" ag":""}" data-group="${g}">${g}</button>`);
-  h+=`</div>`;
+  let h='<div class="group-filters" style="margin-bottom:16px">';
+  GROUPS.forEach(function(g){h+='<button class="group-btn'+(S.group===g?" ag":"")+'" data-group="'+g+'">'+g+"</button>";});
+  h+="</div>";
   const g=S.group;
   const st=groupStandings(g,S.matches);
-  const played=S.matches.filter(m=>m.phase==="csoport"&&m.group===g&&m.result).length;
-  h+=`<div class="table-card"><div class="table-title">${g} csoport ${played>=6?"✓":""}</div>
-    <table class="standings-table">
-      <thead><tr><th>#</th><th>Csapat</th><th>M</th><th>Gy</th><th>D</th><th>V</th><th>G</th><th>GK</th><th>P</th></tr></thead><tbody>`;
-  st.forEach((t,i)=>{
+  const played=S.matches.filter(function(m){return m.phase==="csoport"&&m.group===g&&m.result;}).length;
+  h+='<div class="table-card"><div class="table-title">'+g+" csoport "+(played>=6?"&#x2713;":"")+'</div><table class="standings-table"><thead><tr><th>#</th><th>Csapat</th><th>M</th><th>Gy</th><th>D</th><th>V</th><th>G</th><th>GK</th><th>P</th></tr></thead><tbody>';
+  st.forEach(function(t,i){
     const rc=i===0?"q1":i===1?"q2":i===2?"q3":"";
     const pc=i===0?"p1":i===1?"p2":i===2?"p3":"p4";
     const gkC=t.gd>0?"#00c97a":t.gd<0?"#ff5252":"#f0f0f0";
-    h+=`<tr class="${rc}"><td><span class="pos-dot ${pc}">${i+1}</span></td>
-      <td><div class="flag-name">${fi(t.name,18)}<span>${t.name}</span></div></td>
-      <td>${t.mp}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
-      <td>${t.gf}:${t.ga}</td><td style="color:${gkC}">${t.gd>0?"+":""}${t.gd}</td>
-      <td style="font-weight:700">${t.pts}</td></tr>`;
+    h+='<tr class="'+rc+'"><td><span class="pos-dot '+pc+'">'+(i+1)+'</span></td><td><div class="flag-name">'+fi(t.name,18)+"<span>"+t.name+"</span></div></td><td>"+t.mp+"</td><td>"+t.w+"</td><td>"+t.d+"</td><td>"+t.l+'</td><td>'+t.gf+":"+t.ga+'</td><td style="color:'+gkC+'">'+(t.gd>0?"+":"")+t.gd+'</td><td style="font-weight:700">'+t.pts+"</td></tr>";
   });
-  h+=`</tbody></table></div>`;
-  h+=`<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#888;margin-bottom:16px">
-    <span><span style="color:#00c97a">■</span> 1–2. hely: továbbjut</span>
-    <span><span style="color:#f0a500">■</span> 3. hely: esetleg továbbjut</span></div>`;
+  h+="</tbody></table></div>";
+  h+='<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#888;margin-bottom:16px"><span><span style="color:#00c97a">&#9632;</span> 1\u20132. hely: tov\u00e1bbjut</span><span><span style="color:#f0a500">&#9632;</span> 3. hely: esetleg tov\u00e1bbjut</span></div>';
   const b8=bestThirds(S.matches);
   if(b8.length>0){
-    h+=`<div class="table-card"><div class="table-title">Legjobb 3. helyezettek (top 8 továbbjut)</div>
-      <table class="standings-table">
-        <thead><tr><th>#</th><th>Csapat</th><th>Cs.</th><th>M</th><th>Gy</th><th>D</th><th>V</th><th>G</th><th>GK</th><th>P</th></tr></thead><tbody>`;
-    b8.forEach((t,i)=>{
+    h+='<div class="table-card"><div class="table-title">Legjobb 3. helyezettek (top 8 tov\u00e1bbjut)</div><table class="standings-table"><thead><tr><th>#</th><th>Csapat</th><th>Cs.</th><th>M</th><th>Gy</th><th>D</th><th>V</th><th>G</th><th>GK</th><th>P</th></tr></thead><tbody>';
+    b8.forEach(function(t,i){
       const gkC=t.gd>0?"#00c97a":t.gd<0?"#ff5252":"#f0f0f0";
-      h+=`<tr class="${i<8?"q2":""}"><td><span class="pos-dot ${i<8?"p2":"p4"}">${i+1}</span></td>
-        <td><div class="flag-name">${fi(t.name,18)}<span>${t.name}</span></div></td>
-        <td style="color:#888">${t.group}</td>
-        <td>${t.mp}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
-        <td>${t.gf}:${t.ga}</td><td style="color:${gkC}">${t.gd>0?"+":""}${t.gd}</td>
-        <td style="font-weight:700">${t.pts}</td></tr>`;
+      h+='<tr class="'+(i<8?"q2":"")+'"><td><span class="pos-dot '+(i<8?"p2":"p4")+'">'+(i+1)+'</span></td><td><div class="flag-name">'+fi(t.name,18)+"<span>"+t.name+'</span></div></td><td style="color:#888">'+t.group+"</td><td>"+t.mp+"</td><td>"+t.w+"</td><td>"+t.d+"</td><td>"+t.l+'</td><td>'+t.gf+":"+t.ga+'</td><td style="color:'+gkC+'">'+(t.gd>0?"+":"")+t.gd+'</td><td style="font-weight:700">'+t.pts+"</td></tr>";
     });
-    h+=`</tbody></table></div>`;
+    h+="</tbody></table></div>";
   }
   return h;
 }
 
-function getPoints(u){
-  const tipPts = S.matches.reduce((s,m)=>{
-    if(!m.result)return s;
-    const tip=(S.tips[u]||{})[m.id];if(!tip)return s;
-    const p=calcPts(tip,m.result);return p!==null?s+p:s;
-  },0);
-  const fav=(S.users_data?.[u]?.fav)||null;
-  const favPts=getFavPts(fav,S.matches);
-  return tipPts+favPts;
-}
-
 function renderLeaderboard(){
-  const board=[...S.users].map(u=>({name:u,pts:getPoints(u)})).sort((a,b)=>b.pts-a.pts);  const mc=i=>i===0?"#f0a500":i===1?"#aaa":i===2?"#cd7f32":"#444";
-  let h=`<div class="board-list">`;
-  if(!board.length)h+=`<p class="empty">Még nincs résztvevő.</p>`;
-  board.forEach((u,i)=>{
-    const fav=(S.users_data?.[u.name]?.fav)||null;
+  const board=S.users.map(function(u){return{name:u,pts:getPoints(u)};}).sort(function(a,b){return b.pts-a.pts;});
+  const mc=function(i){return i===0?"#f0a500":i===1?"#aaa":i===2?"#cd7f32":"#444";};
+  let h='<div class="board-list">';
+  if(!board.length)h+='<p class="empty">M\u00e9g nincs r\u00e9szt\u0151ev\u0151.</p>';
+  board.forEach(function(u,i){
+    const fav=(S.users_data[u.name]&&S.users_data[u.name].fav)||null;
     const elim=fav&&isEliminated(fav,S.matches);
     const favHtml=fav
-      ?`<div style="font-size:11px;color:${elim?"#ff5252":"#888"};display:flex;align-items:center;gap:3px;margin-top:2px">${fi(fav,14)} ${fav}${elim?" (kiesett)":""}</div>`
+      ?'<div style="font-size:11px;color:'+(elim?"#ff5252":"#888")+';display:flex;align-items:center;gap:3px;margin-top:2px">'+fi(fav,14)+" "+fav+(elim?" (kiesett)":"")+"</div>"
       :"";
-    h+=`<div class="board-row${u.name===S.username?" me":""}${i===0?" first":i===1?" second":""}">
-      <span class="rank-circle" style="border:1px solid ${mc(i)}55;color:${mc(i)}">${i+1}</span>
-      <div style="flex:1;min-width:0">
-        <div style="font-weight:${u.name===S.username||i<2?700:400};font-size:14px">${u.name}</div>
-        ${favHtml}
-      </div>
-      <span style="font-weight:700;font-size:22px;color:${i===0?"#f0a500":"#00c97a"}">${u.pts}</span>
-      <span style="font-size:12px;color:#444">pont</span>
-    </div>`;
+    h+='<div class="board-row'+(u.name===S.username?" me":"")+(i===0?" first":i===1?" second":"")+'"><span class="rank-circle" style="border:1px solid '+mc(i)+'55;color:'+mc(i)+'">'+(i+1)+'</span><div style="flex:1;min-width:0"><div style="font-weight:'+(u.name===S.username||i<2?700:400)+';font-size:14px">'+u.name+"</div>"+favHtml+'</div><span style="font-weight:700;font-size:22px;color:'+(i===0?"#f0a500":"#00c97a")+'">'+u.pts+'</span><span style="font-size:12px;color:#444">pont</span></div>';
   });
-  h+=`</div><div class="rules-card"><div style="font-weight:700;font-size:13px;color:#00c97a;margin-bottom:8px">Pontozási szabályok</div>`;
-  [[3,"rgba(0,201,122,.12)","#00c97a","Pontos eredmény"],[2,"rgba(76,163,255,.12)","#4ca3ff","Helyes gólkülönbség + győztes"],[1,"rgba(240,165,0,.12)","#f0a500","Csak a győztes eltalálva"],[0,"rgba(255,82,82,.12)","#ff5252","Téves tipp"]].forEach(([p,bg,col,txt])=>
-    h+=`<div class="rule-row"><span class="rule-badge" style="background:${bg};color:${col}">${p} pont</span><span style="color:#888;font-size:13px">${txt}</span></div>`
-  );
-  return h+`</div>`;
+  h+='</div><div class="rules-card"><div style="font-weight:700;font-size:13px;color:#00c97a;margin-bottom:8px">Ponoz\u00e1si szab\u00e1lyok</div>';
+  [[3,"rgba(0,201,122,.12)","#00c97a","Pontos eredm\u00e9ny"],[2,"rgba(76,163,255,.12)","#4ca3ff","Helyes g\u00f3lk\u00fcl\u00f6nbs\u00e9g + gy\u0151ztes"],[1,"rgba(240,165,0,.12)","#f0a500","Csak a gy\u0151ztes eltal\u00e1lva"],[0,"rgba(255,82,82,.12)","#ff5252","T\u00e9ves tipp"]].forEach(function(r){
+    h+='<div class="rule-row"><span class="rule-badge" style="background:'+r[1]+';color:'+r[2]+'">'+r[0]+' pont</span><span style="color:#888;font-size:13px">'+r[3]+"</span></div>";
+  });
+  h+='</div><div style="margin-top:12px;background:#1c1c1c;border-radius:10px;padding:10px 14px;font-size:12px;color:#888"><b style="color:#00c97a">Kedvenc csapat bónusz:</b> +1 pont minden gy\u0151ztes meccs ut\u00e1n, +5 pont VB gy\u0151zelem eset\u00e9n</div>';
+  return h;
 }
 
 function renderResults(){
-  const vis=S.matches.filter(m=>m.phase===S.phase&&(S.phase!=="csoport"||m.group===S.group));
-  let h=`<p style="color:#888;font-size:13px;margin-bottom:10px">A mezőből kilépve automatikusan ment.</p>`;
+  const vis=S.matches.filter(function(m){return m.phase===S.phase&&(S.phase!=="csoport"||m.group===S.group);});
+  let h='<p style="color:#888;font-size:13px;margin-bottom:10px">A mez\u0151b\u0151l kil\u00e9pve automatikusan ment.</p>';
   h+=renderPhaseFilters("p");
-  vis.forEach(m=>{
+  vis.forEach(function(m){
     const er=S.editRes[m.id]||{};
-    const isKnownH=!!FLAG_CODES[m.home]||!!S.overrideTeams[m.id]?.home;
-    const isKnownA=!!FLAG_CODES[m.away]||!!S.overrideTeams[m.id]?.away;
-    const ovH=S.overrideTeams[m.id]?.home||m.home;
-    const ovA=S.overrideTeams[m.id]?.away||m.away;
+    const isKnownH=!!FLAG_CODES[m.home]||!!(S.overrideTeams[m.id]&&S.overrideTeams[m.id].home);
+    const isKnownA=!!FLAG_CODES[m.away]||!!(S.overrideTeams[m.id]&&S.overrideTeams[m.id].away);
+    const ovH=(S.overrideTeams[m.id]&&S.overrideTeams[m.id].home)||m.home;
+    const ovA=(S.overrideTeams[m.id]&&S.overrideTeams[m.id].away)||m.away;
     const hF=isKnownH
-      ?`<span class="team team-home" style="font-size:13px">${m.home}${fi(m.home)}</span>`
-      :`<input type="text" value="${ovH}" data-override="${m.id}" data-override-side="home" class="ov-input" placeholder="Hazai" style="flex:1;text-align:right"/>`;
+      ?'<span class="team team-home" style="font-size:13px">'+m.home+fi(m.home)+"</span>"
+      :'<input type="text" value="'+ovH+'" data-override="'+m.id+'" data-override-side="home" class="ov-input" placeholder="Hazai" style="flex:1;text-align:right"/>';
     const aF=isKnownA
-      ?`<span class="team team-away" style="font-size:13px">${fi(m.away)}${m.away}</span>`
-      :`<input type="text" value="${ovA}" data-override="${m.id}" data-override-side="away" class="ov-input" placeholder="Vendég" style="flex:1;text-align:left"/>`;
-    h+=`<div class="admin-card">
-      <div class="admin-head">${m.group?m.group+" csoport":(m.label||"")} · ${fmtTime(m.time)}</div>
-      <div class="admin-body">
-        ${hF}
-        <input class="score-input" type="text" inputmode="numeric" maxlength="2" placeholder="–" value="${er.home??(m.result?.home??'')}" data-res="${m.id}" data-res-side="home" style="border-color:rgba(180,158,255,.33)" ${OINP}/>
-        <span class="score-sep">–</span>
-        <input class="score-input" type="text" inputmode="numeric" maxlength="2" placeholder="–" value="${er.away??(m.result?.away??'')}" data-res="${m.id}" data-res-side="away" style="border-color:rgba(180,158,255,.33)" ${OINP}/>
-        ${aF}
-      </div>
-    </div>`;
+      ?'<span class="team team-away" style="font-size:13px">'+fi(m.away)+m.away+"</span>"
+      :'<input type="text" value="'+ovA+'" data-override="'+m.id+'" data-override-side="away" class="ov-input" placeholder="Vend\u00e9g" style="flex:1;text-align:left"/>';
+    h+='<div class="admin-card"><div class="admin-head">'+(m.group?m.group+" csoport":(m.label||""))+" &middot; "+fmtTime(m.time)+'</div><div class="admin-body">'+hF
+      +'<input class="score-input" type="text" inputmode="numeric" maxlength="2" placeholder="\u2013" value="'+(er.home!==undefined?er.home:(m.result&&m.result.home?m.result.home:""))+'" data-res="'+m.id+'" data-res-side="home" style="border-color:rgba(180,158,255,.33)" '+OINP+'/>'
+      +'<span class="score-sep">\u2013</span>'
+      +'<input class="score-input" type="text" inputmode="numeric" maxlength="2" placeholder="\u2013" value="'+(er.away!==undefined?er.away:(m.result&&m.result.away?m.result.away:""))+'" data-res="'+m.id+'" data-res-side="away" style="border-color:rgba(180,158,255,.33)" '+OINP+'/>'
+      +aF+"</div></div>";
   });
-  return h||`<p class="empty">Nincs mérkőzés.</p>`;
+  return h||'<p class="empty">Nincs m\u00e9rk\u0151z\u00e9s.</p>';
 }
 
 function renderPlayers(){
-  let h=`<p style="color:#888;font-size:13px;margin-bottom:14px">Regisztrált játékosok kezelése.</p>`;
-  if(!S.users.length)return h+`<p class="empty">Még nincs regisztrált játékos.</p>`;
-  S.users.forEach((u,i)=>{
-    const pts=getPoints(u),tc=Object.keys(S.tips[u]||{}).length;
-    h+=`<div class="player-card">
-      <div class="player-avatar">${u[0].toUpperCase()}</div>
-      <div style="flex:1"><div style="font-weight:600;font-size:14px">${u}</div><div style="font-size:12px;color:#444">${tc} tipp · ${pts} pont</div></div>
-      <span style="font-size:12px;padding:3px 10px;border-radius:8px;background:#1c1c1c;color:#888;border:1px solid #272727">#${i+1}</span>
-      <button class="del-btn" data-del="${u}">🗑 Törlés</button>
-    </div>`;
+  let h='<p style="color:#888;font-size:13px;margin-bottom:14px">Regisztr\u00e1lt j\u00e1t\u00e9kosok kezel\u00e9se.</p>';
+  if(!S.users.length)return h+'<p class="empty">M\u00e9g nincs regisztr\u00e1lt j\u00e1t\u00e9kos.</p>';
+  S.users.forEach(function(u,i){
+    const pts=getPoints(u);
+    const tc=Object.keys(S.tips[u]||{}).length;
+    h+='<div class="player-card"><div class="player-avatar">'+u[0].toUpperCase()+'</div><div style="flex:1"><div style="font-weight:600;font-size:14px">'+u+'</div><div style="font-size:12px;color:#444">'+tc+' tipp &middot; '+pts+' pont</div></div><span style="font-size:12px;padding:3px 10px;border-radius:8px;background:#1c1c1c;color:#888;border:1px solid #272727">#'+(i+1)+'</span><button class="del-btn" data-del="'+u+'">&#x1F5D1; T\u00f6rl\u00e9s</button></div>';
   });
-  const tot=Object.values(S.tips).reduce((s,t)=>s+Object.keys(t).length,0);
-  return h+`<div style="margin-top:16px;background:#141414;border:1px solid #272727;border-radius:12px;padding:12px 16px;font-size:13px;color:#888"><strong style="color:#b49eff">Összesítés:</strong> ${S.users.length} játékos · ${tot} tipp</div>`;
+  const tot=Object.values(S.tips).reduce(function(s,t){return s+Object.keys(t).length;},0);
+  return h+'<div style="margin-top:16px;background:#141414;border:1px solid #272727;border-radius:12px;padding:12px 16px;font-size:13px;color:#888"><strong style="color:#b49eff">\u00d6sszeg: </strong>'+S.users.length+' j\u00e1t\u00e9kos &middot; '+tot+' tipp</div>';
 }
 
 function renderModal(){
-  return`<div class="modal-overlay">
-    <div class="modal">
-      <div style="font-size:32px;margin-bottom:12px">🗑</div>
-      <div style="font-weight:700;font-size:16px;margin-bottom:8px">Játékos törlése</div>
-      <div style="color:#888;font-size:14px">Biztosan törlöd <strong style="color:#f0f0f0">${S.delConfirm}</strong> játékost?</div>
-      <div class="modal-btns">
-        <button class="modal-cancel" id="cancelDel">Mégse</button>
-        <button class="modal-del" id="confirmDel">Törlés</button>
-      </div>
-    </div>
-  </div>`;
+  return '<div class="modal-overlay"><div class="modal"><div style="font-size:32px;margin-bottom:12px">&#x1F5D1;</div><div style="font-weight:700;font-size:16px;margin-bottom:8px">J\u00e1t\u00e9kos t\u00f6rl\u00e9se</div><div style="color:#888;font-size:14px">Biztosan t\u00f6rl\u00f6d <strong style="color:#f0f0f0">'+S.delConfirm+"</strong> j\u00e1t\u00e9kost?</div>"
+    +'<div class="modal-btns"><button class="modal-cancel" id="cancelDel">M\u00e9gse</button><button class="modal-del" id="confirmDel">T\u00f6rl\u00e9s</button></div></div></div>';
 }
 
-// ── Events ───────────────────────────────
 function bindEvents(){
-  document.getElementById("logoutBtn")?.addEventListener("click",()=>{
-    clearInterval(S.pollTimer);
-    S.username=""; S.tab="matches";
-    lsDel(LS_USER); lsDel(LS_TAB);
+  document.getElementById("logoutBtn")&&document.getElementById("logoutBtn").addEventListener("click",function(){
+    clearInterval(S.pollTimer);S.username="";S.tab="matches";
+    lsDel(LS_USER);lsDel(LS_TAB);
     showPage("pg-login");
     document.getElementById("nameInput").value="";
     document.getElementById("pwInput").value="";
     document.getElementById("pwHint").style.display="block";
   });
-
-  document.getElementById("themeBtn")?.addEventListener("click",()=>{
+  document.getElementById("themeBtn")&&document.getElementById("themeBtn").addEventListener("click",function(){
     const isLight=document.body.classList.toggle("light");
-    document.getElementById("themeBtn").textContent=isLight?"☀️":"🌙";
-    lsSet("vb26_theme", isLight?"light":"dark");
+    document.getElementById("themeBtn").textContent=isLight?"\u2600\uFE0F":"\uD83C\uDF19";
+    lsSet("vb26_theme",isLight?"light":"dark");
   });
-    S.tab=b.dataset.tab; lsSet(LS_TAB,S.tab); renderMain();
-  }));
-  document.querySelectorAll("[data-phase]").forEach(b=>b.addEventListener("click",()=>{S.phase=b.dataset.phase;renderMain();}));
-  document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click",()=>{S.group=b.dataset.group;renderMain();}));
-
-  // Tipp inputok
-  document.querySelectorAll(".score-input[data-mid]").forEach(inp=>{
-    inp.addEventListener("input",()=>{
-      const {mid,side}=inp.dataset;
+  document.querySelectorAll("[data-tab]").forEach(function(b){b.addEventListener("click",function(){S.tab=b.dataset.tab;lsSet(LS_TAB,S.tab);renderMain();});});
+  document.querySelectorAll("[data-phase]").forEach(function(b){b.addEventListener("click",function(){S.phase=b.dataset.phase;renderMain();});});
+  document.querySelectorAll("[data-group]").forEach(function(b){b.addEventListener("click",function(){S.group=b.dataset.group;renderMain();});});
+  document.querySelectorAll(".score-input[data-mid]").forEach(function(inp){
+    inp.addEventListener("input",function(){
+      const mid=inp.dataset.mid,side=inp.dataset.side;
       S.tips[S.username]=S.tips[S.username]||{};
       S.tips[S.username][mid]=S.tips[S.username][mid]||{};
       S.tips[S.username][mid][side]=inp.value;
     });
-    inp.addEventListener("blur",async()=>{
-      const {mid,side}=inp.dataset; const val=inp.value;
+    inp.addEventListener("blur",async function(){
+      const mid=inp.dataset.mid,side=inp.dataset.side,val=inp.value;
       if(val==="")return;
       const os=side==="home"?"away":"home";
-      const oi=document.querySelector(`.score-input[data-mid="${mid}"][data-side="${os}"]`);
-      const ov2=oi?oi.value:((S.tips[S.username]||{})[mid]||{})[os]??"";
+      const oi=document.querySelector('.score-input[data-mid="'+mid+'"][data-side="'+os+'"]');
+      const ov2=oi?oi.value:((S.tips[S.username]||{})[mid]||{})[os]||"";
       S.tips[S.username]=S.tips[S.username]||{};
       S.tips[S.username][mid]=S.tips[S.username][mid]||{};
       S.tips[S.username][mid][side]=val;
-      await dbSet(`tips/${S.username}/${mid}/${side}`,val);
+      await dbSet("tips/"+S.username+"/"+mid+"/"+side,val);
       if(val&&ov2){
-        const hv=side==="home"?val:ov2, av=side==="away"?val:ov2;
+        const hv=side==="home"?val:ov2,av=side==="away"?val:ov2;
         S.savedTips[mid]={home:hv,away:av};
         const card=inp.closest(".match-card");
         if(card){
-          card.querySelectorAll(".saved-tip-row").forEach(el=>el.remove());
+          card.querySelectorAll(".saved-tip-row").forEach(function(el){el.remove();});
           const div=document.createElement("div");
           div.className="saved-tip-row";
-          div.innerHTML=`✓ Tipp elmentve: ${hv}–${av}`;
+          div.innerHTML="&#x2713; Tipp elmentve: "+hv+"\u2013"+av;
           card.appendChild(div);
         }
       }
     });
   });
-
-  // Admin eredmény inputok
-  document.querySelectorAll(".score-input[data-res]").forEach(inp=>{
-    inp.addEventListener("change",()=>{
-      const mid=inp.dataset.res, side=inp.dataset.resSide;
+  document.querySelectorAll(".score-input[data-res]").forEach(function(inp){
+    inp.addEventListener("change",function(){
+      const mid=inp.dataset.res,side=inp.dataset.resSide;
       S.editRes[mid]=S.editRes[mid]||{};
       S.editRes[mid][side]=inp.value;
     });
-    inp.addEventListener("blur",async()=>{
-      const mid=inp.dataset.res;
-      const r=S.editRes[mid];
+    inp.addEventListener("blur",async function(){
+      const mid=inp.dataset.res,r=S.editRes[mid];
       if(!r||r.home===undefined||r.away===undefined||r.home===""||r.away==="")return;
-      await dbSet(`results/${mid}`,{home:r.home,away:r.away});
+      await dbSet("results/"+mid,{home:r.home,away:r.away});
       await pollData();
     });
   });
-
-  // Override csapatnevek
-  document.querySelectorAll("[data-override]").forEach(inp=>{
-    inp.addEventListener("blur",async()=>{
-      const mid=inp.dataset.override, side=inp.dataset.overrideSide, val=inp.value.trim();
+  document.querySelectorAll("[data-override]").forEach(function(inp){
+    inp.addEventListener("blur",async function(){
+      const mid=inp.dataset.override,side=inp.dataset.overrideSide,val=inp.value.trim();
       if(!val)return;
       S.overrideTeams[mid]=S.overrideTeams[mid]||{};
       S.overrideTeams[mid][side]=val;
-      await dbSet(`overrides/${mid}/${side}`,val);
+      await dbSet("overrides/"+mid+"/"+side,val);
       if(FLAG_CODES[val]){
         const span=document.createElement("span");
-        span.className=`team ${side==="home"?"team-home":"team-away"}`;
+        span.className="team "+(side==="home"?"team-home":"team-away");
         span.style.fontSize="13px";
-        span.innerHTML=side==="home"?`${val}${fi(val)}`:`${fi(val)}${val}`;
+        span.innerHTML=side==="home"?val+fi(val):fi(val)+val;
         inp.replaceWith(span);
       }
       await pollData();
     });
   });
-
-  document.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>{S.delConfirm=b.dataset.del;renderMain();}));
-  document.getElementById("cancelDel")?.addEventListener("click",()=>{S.delConfirm=null;renderMain();});
-  document.getElementById("confirmDel")?.addEventListener("click",async()=>{
+  document.querySelectorAll("[data-del]").forEach(function(b){b.addEventListener("click",function(){S.delConfirm=b.dataset.del;renderMain();});});
+  document.getElementById("cancelDel")&&document.getElementById("cancelDel").addEventListener("click",function(){S.delConfirm=null;renderMain();});
+  document.getElementById("confirmDel")&&document.getElementById("confirmDel").addEventListener("click",async function(){
     const name=S.delConfirm;
-    await dbDel(`users/${name}`); await dbDel(`tips/${name}`);
-    S.delConfirm=null; showToast(`${name} törölve`,"info"); await pollData();
+    await dbDel("users/"+name);await dbDel("tips/"+name);
+    S.delConfirm=null;showToast(name+" t\u00f6r\u00f6lve","info");await pollData();
   });
 }
 
-// ── Indítás ──────────────────────────────
 async function init(){
-  // Téma betöltése
-  if(lsGet("vb26_theme")==="light") document.body.classList.add("light");
-
+  if(lsGet("vb26_theme")==="light")document.body.classList.add("light");
   const savedUser=lsGet(LS_USER);
   const savedTab=lsGet(LS_TAB);
   if(savedUser){
