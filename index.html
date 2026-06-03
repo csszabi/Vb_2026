@@ -412,8 +412,7 @@ async function doLogin(){
     }
     S.username=n;
     S.tab="matches";
-    localStorage.setItem("vb26_user",n);
-    localStorage.setItem("vb26_tab","matches");
+    saveSession(n,"matches");
   }
   showScreen("main");
   await pollData();
@@ -653,22 +652,46 @@ function renderModal(){
 function bindEvents(isAdmin){
   document.getElementById("logoutBtn")?.addEventListener("click",()=>{
     clearInterval(S.pollTimer);S.username="";S.tab="matches";
-    // ── Indítás: visszajelentkezés ha volt mentett session ──
+    // ── Indítás ──
 async function init(){
-  const savedUser=localStorage.getItem("vb26_user");
-  const savedTab=localStorage.getItem("vb26_tab");
+  let savedUser = null;
+  let savedTab  = null;
+  try {
+    savedUser = localStorage.getItem("vb26_user") || sessionStorage.getItem("vb26_user");
+    savedTab  = localStorage.getItem("vb26_tab")  || sessionStorage.getItem("vb26_tab");
+  } catch(e) {}
+
   if(savedUser){
     showScreen("loading");
-    S.username=savedUser;
-    S.tab=savedTab||( savedUser===ADMIN?"results":"matches");
+    S.username = savedUser;
+    S.tab = savedTab || (savedUser === ADMIN ? "results" : "matches");
     await pollData();
     startPolling();
     showScreen("main");
     renderMain();
-  }else{
+  } else {
     showScreen("login");
   }
 }
+
+function saveSession(user, tab){
+  try {
+    localStorage.setItem("vb26_user", user);
+    localStorage.setItem("vb26_tab",  tab);
+    sessionStorage.setItem("vb26_user", user);
+    sessionStorage.setItem("vb26_tab",  tab);
+  } catch(e) {}
+}
+
+function clearSession(){
+  try {
+    localStorage.removeItem("vb26_user");
+    localStorage.removeItem("vb26_tab");
+    sessionStorage.removeItem("vb26_user");
+    sessionStorage.removeItem("vb26_tab");
+  } catch(e) {}
+}
+
 init();
     document.getElementById("nameInput").value="";
     document.getElementById("pwInput").value="";
