@@ -535,7 +535,10 @@ function showFavPicker(){
 
   document.getElementById("favConfirmBtn").onclick = async()=>{
     if(!selectedFav) return;
-    await dbSet(`users/${S.username}`,{pin:(await dbGet(`users/${S.username}`))?.pin||"", fav:selectedFav});
+    const existing = await dbGet(`users/${S.username}`);
+    await dbSet(`users/${S.username}`,{...(existing||{}), fav:selectedFav});
+    S.tab = "matches";
+    lsSet(LS_TAB,"matches");
     await pollData();
     startPolling();
     showPage("pg-main");
