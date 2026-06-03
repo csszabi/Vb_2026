@@ -128,13 +128,30 @@ button{cursor:pointer;font-family:inherit}
 </div>
 
 <div id="pg-fav" style="display:none">
-  <div class="fav-wrap">
-    <div class="fav-card">
-      <div style="text-align:center;font-size:32px;margin-bottom:12px">⚽</div>
-      <div class="fav-title">Válaszd ki a kedvenc csapatodat!</div>
-      <div class="fav-sub">Ez nem módosítható később. Ha csapatod győz, extra pontokat kapsz!</div>
-      <div class="fav-groups" id="favGroups"></div>
-      <button class="fav-confirm" id="favConfirmBtn">✓ Megerősítés</button>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-icon">⚽</div>
+      <h1 style="font-size:20px;font-weight:700;margin-bottom:6px">Kedvenc csapat</h1>
+      <p style="color:#888;font-size:13px;margin-bottom:6px">Válaszd ki a kedvenc csapatodat!</p>
+      <p style="color:#555;font-size:12px;margin-bottom:20px">Ez nem módosítható később. Győzelmenkénti +1 pont, VB győzelem: +5 pont!</p>
+      <select id="favSelect" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #333;background:#1a1a1a;color:#f0f0f0;font-size:14px;margin-bottom:16px;outline:none;cursor:pointer">
+        <option value="">– Válassz csapatot –</option>
+        ${Object.entries({
+          A:["Mexikó","Dél-Afrika","Dél-Korea","Csehország"],
+          B:["Kanada","Bosznia-Hercegovina","Svájc","Katar"],
+          C:["Brazília","Marokkó","Skócia","Haiti"],
+          D:["USA","Paraguay","Ausztrália","Törökország"],
+          E:["Németország","Curaçao","Elefántcsontpart","Ecuador"],
+          F:["Hollandia","Japán","Svédország","Tunézia"],
+          G:["Belgium","Egyiptom","Irán","Új-Zéland"],
+          H:["Spanyolország","Zöld-foki-szigetek","Szaúd-Arábia","Uruguay"],
+          I:["Franciaország","Szenegál","Norvégia","Irak"],
+          J:["Argentína","Algéria","Ausztria","Jordánia"],
+          K:["Portugália","Kongói DK","Üzbegisztán","Kolumbia"],
+          L:["Anglia","Horvátország","Panama","Ghána"],
+        }).map(([g,ts])=>`<optgroup label="${g} csoport">${ts.map(t=>`<option value="${t}">${t}</option>`).join("")}</optgroup>`).join("")}
+      </select>
+      <button class="login-btn" id="favConfirmBtn">Megerősítés</button>
     </div>
   </div>
 </div>
@@ -506,37 +523,13 @@ async function doLogin(){
   renderMain();
 }
 
-// ── Kedvenc csapat választó ───────────────
-let selectedFav = null;
-
 function showFavPicker(){
   showPage("pg-fav");
-  selectedFav = null;
-  const container = document.getElementById("favGroups");
-  container.innerHTML = ALL_TEAMS_BY_GROUP.map(([group, teams])=>`
-    <div>
-      <div class="fav-group-label">${group} CSOPORT</div>
-      <div class="fav-teams">
-        ${teams.map(t=>`
-          <button class="fav-team-btn" data-fav="${t}">
-            ${fi(t,18)} ${t}
-          </button>`).join("")}
-      </div>
-    </div>`).join("");
-
-  container.querySelectorAll(".fav-team-btn").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      container.querySelectorAll(".fav-team-btn").forEach(b=>b.classList.remove("selected"));
-      btn.classList.add("selected");
-      selectedFav = btn.dataset.fav;
-      document.getElementById("favConfirmBtn").classList.add("show");
-    });
-  });
-
   document.getElementById("favConfirmBtn").onclick = async()=>{
-    if(!selectedFav) return;
+    const sel = document.getElementById("favSelect").value;
+    if(!sel){ return; }
     const existing = await dbGet(`users/${S.username}`);
-    await dbSet(`users/${S.username}`,{...(existing||{}), fav:selectedFav});
+    await dbSet(`users/${S.username}`,{...(existing||{}), fav:sel});
     S.tab = "matches";
     lsSet(LS_TAB,"matches");
     await pollData();
