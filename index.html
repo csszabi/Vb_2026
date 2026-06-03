@@ -184,7 +184,8 @@ function lsDel(k){try{localStorage.removeItem(k);}catch{}}
 
 function showPage(id){
   ["pg-loading","pg-login","pg-fav","pg-main"].forEach(x=>{
-    document.getElementById(x).style.display = x===id ? "block" : "none";
+    const el=document.getElementById(x);
+    if(el) el.style.display = x===id ? "block" : "none";
   });
 }
 
