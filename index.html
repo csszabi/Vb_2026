@@ -210,9 +210,8 @@ function slotLabel(s){
     "r16_1":"R16-1 gy.","r16_2":"R16-2 gy.","r16_3":"R16-3 gy.","r16_4":"R16-4 gy.",
     "r16_5":"R16-5 gy.","r16_6":"R16-6 gy.","r16_7":"R16-7 gy.","r16_8":"R16-8 gy.",
     "qf_1":"NF-1 gy.","qf_2":"NF-2 gy.","qf_3":"NF-3 gy.","qf_4":"NF-4 gy.",
-    "sf_1":"EF-1 gy.","sf_2":"EF-2 gy.",
-    "sf_1_loser":"EF-1 veszt.","sf_2_loser":"EF-2 veszt.",
-  };
+    "sf_1":"R8-1 gy.","sf_2":"R8-2 gy.",
+    "sf_1_loser":"R4-1 veszt.","sf_2_loser":"R4-2 veszt.",  };
   return M[s]||s;
 }
 
@@ -233,8 +232,10 @@ const R16=[
   ["r16_7","m15","m14","2026-07-07T18:00:00"],["r16_8","m13","m16","2026-07-07T22:00:00"],
 ];
 const QF=[
-  ["qf_1","r16_2","r16_1","2026-07-09T22:00:00"],["qf_2","r16_5","r16_6","2026-07-10T21:00:00"],
-  ["qf_3","r16_3","r16_4","2026-07-11T23:00:00"],["qf_4","r16_7","r16_8","2026-07-12T03:00:00"],
+  ["qf_1","r16_2","r16_1","2026-07-09T22:00:00"],
+  ["qf_2","r16_5","r16_6","2026-07-10T21:00:00"],
+  ["qf_3","r16_3","r16_4","2026-07-11T23:00:00"],
+  ["qf_4","r16_7","r16_8","2026-07-12T03:00:00"],
 ];
 const SF=[
   ["sf_1","qf_1","qf_2","2026-07-14T21:00:00"],
@@ -245,9 +246,9 @@ const KO_BASE=[
   ...R32.map(([id,h,a,t],i)=>({id,phase:"R32",label:`${i+1}. (${slotLabel(h)} – ${slotLabel(a)})`,hs:h,as:a,home:slotLabel(h),away:slotLabel(a),time:t,result:null})),
   ...R16.map(([id,h,a,t],i)=>({id,phase:"R16",label:`${i+1}. nyolcaddöntő`,hs:h,as:a,home:slotLabel(h),away:slotLabel(a),time:t,result:null})),
   ...QF.map(([id,h,a,t],i)=>({id,phase:"NF",label:`${i+1}. negyeddöntő`,hs:h,as:a,home:slotLabel(h),away:slotLabel(a),time:t,result:null})),
-  ...SF.map(([id,h,a,t],i)=>({id,phase:"EF",label:`${i+1}. elődöntő`,hs:h,as:a,home:slotLabel(h),away:slotLabel(a),time:t,result:null})),
-  {id:"b3",phase:"3H",label:"3. helyért",hs:"sf_1_loser",as:"sf_2_loser",home:slotLabel("sf_1_loser"),away:slotLabel("sf_2_loser"),time:"2026-07-18T23:00:00",result:null},
-  {id:"final",phase:"D",label:"Döntő",hs:"sf_1",as:"sf_2",home:slotLabel("sf_1"),away:slotLabel("sf_2"),time:"2026-07-19T21:00:00",result:null},
+  ...SF.map(([id,h,a,t],i)=>({id,phase:"EF",label:`${i+1}. elődöntő`,hs:h,as:a,home:`R8-${i*2+1} gy.`,away:`R8-${i*2+2} gy.`,time:t,result:null})),
+  {id:"b3",phase:"3H",label:"3. helyért",hs:"sf_1_loser",as:"sf_2_loser",home:"R4-1 vesztese",away:"R4-2 vesztese",time:"2026-07-18T23:00:00",result:null},
+  {id:"final",phase:"D",label:"Döntő",hs:"sf_1",as:"sf_2",home:"R4-1 győztese",away:"R4-2 győztese",time:"2026-07-19T21:00:00",result:null},
 ];
 
 const ALL_MATCHES=[...GROUP_MATCHES,...KO_BASE];
