@@ -17,7 +17,7 @@ input[type=number]{-moz-appearance:textfield}
 .login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem 1rem}
 .login-card{background:#141414;border-radius:20px;border:1px solid #333;padding:40px 36px;max-width:380px;width:100%;text-align:center}
 .login-icon{width:72px;height:72px;border-radius:50%;background:rgba(0,201,122,.12);border:1px solid rgba(0,201,122,.2);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px}
-.login-input{flex:1;padding:9px 13px;border-radius:10px;border:1px solid #333;font-size:15px;outline:none;color:#f0f0f0;background:#1a1a1a;width:100%;margin-bottom:10px}
+.login-input{padding:9px 13px;border-radius:10px;border:1px solid #333;font-size:15px;outline:none;color:#f0f0f0;background:#1a1a1a;width:100%;margin-bottom:10px}
 .login-btn{padding:9px 18px;border-radius:10px;border:none;background:#00c97a;color:#000;font-weight:700;font-size:15px;width:100%;margin-bottom:12px}
 .pw-error{color:#ff5252;font-size:12px;margin-top:4px;display:none}
 .main-wrap{border-radius:18px;overflow:hidden;border:1px solid #333}
@@ -52,7 +52,7 @@ input[type=number]{-moz-appearance:textfield}
 .team{flex:1;display:flex;align-items:center;gap:5px;font-size:13px;font-weight:500;color:#f0f0f0}
 .team-home{justify-content:flex-end}
 .team-away{justify-content:flex-start}
-.team img{width:22px;height:15px;border-radius:2px;object-fit:cover;flex-shrink:0}
+.team img,.flag-name img{width:22px;height:15px;border-radius:2px;object-fit:cover;flex-shrink:0}
 .score-wrap{display:flex;gap:4px;align-items:center}
 .score-box{width:36px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid #272727;border-radius:7px;font-size:14px;color:#888;background:#1c1c1c}
 .score-input{width:42px;text-align:center;padding:5px 0;border-radius:7px;border:1px solid #333;font-size:15px;color:#f0f0f0;background:#222;outline:none}
@@ -66,9 +66,6 @@ input[type=number]{-moz-appearance:textfield}
 .rules-card{background:#141414;border:1px solid #272727;border-radius:12px;padding:12px 16px}
 .rule-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
 .rule-badge{padding:1px 8px;border-radius:8px;font-weight:700;font-size:12px;min-width:48px;text-align:center}
-.admin-tabs{display:flex;background:#141414;border-radius:10px;border:1px solid #272727;overflow:hidden;margin-bottom:16px}
-.admin-tab{flex:1;padding:10px;border:none;background:transparent;font-size:13px;color:#888;border-bottom:2px solid transparent}
-.admin-tab.active{background:rgba(180,158,255,.12);color:#b49eff;font-weight:700;border-bottom-color:#b49eff}
 .admin-card{background:#141414;border:1px solid #272727;border-radius:12px;overflow:hidden;margin-bottom:8px}
 .admin-head{padding:5px 12px;background:#1c1c1c;border-bottom:1px solid #272727;font-size:11px;color:#fff}
 .admin-body{display:flex;align-items:center;gap:8px;padding:10px 12px;flex-wrap:wrap}
@@ -87,7 +84,7 @@ input[type=number]{-moz-appearance:textfield}
 .table-card{background:#141414;border:1px solid #272727;border-radius:12px;overflow:hidden;margin-bottom:16px}
 .table-title{padding:8px 14px;background:#1c1c1c;border-bottom:1px solid #272727;font-size:13px;font-weight:700;color:#00c97a}
 .standings-table{width:100%;border-collapse:collapse;font-size:12px}
-.standings-table th{padding:6px 6px;color:#888;font-weight:500;text-align:center;border-bottom:1px solid #272727}
+.standings-table th{padding:6px;color:#888;font-weight:500;text-align:center;border-bottom:1px solid #272727}
 .standings-table th:nth-child(2){text-align:left}
 .standings-table td{padding:7px 6px;text-align:center;border-bottom:1px solid #1a1a1a;color:#f0f0f0}
 .standings-table td:nth-child(2){text-align:left}
@@ -102,7 +99,7 @@ input[type=number]{-moz-appearance:textfield}
 .p4{background:rgba(255,82,82,.1);color:#ff5252}
 .flag-name{display:flex;align-items:center;gap:5px}
 .override-box{background:#141414;border:1px solid #272727;border-radius:12px;padding:12px 16px;margin-bottom:14px}
-.ov-input{flex:1;min-width:100px;padding:5px 8px;border-radius:7px;border:1px solid rgba(180,158,255,.33);font-size:13px;color:#f0f0f0;background:#222;outline:none}
+.ov-input{padding:5px 8px;border-radius:7px;border:1px solid rgba(180,158,255,.33);font-size:13px;color:#f0f0f0;background:#222;outline:none}
 </style>
 </head>
 <body>
@@ -140,7 +137,7 @@ input[type=number]{-moz-appearance:textfield}
     <div class="main-wrap">
       <div id="hdr"></div>
       <div id="tabsWrap"></div>
-      <div id="content" class="content"></div>
+      <div id="contentWrap" class="content"></div>
     </div>
   </div>
 </div>
@@ -208,8 +205,10 @@ function slotLabel(s){
     "m13":"32-13 gy.","m14":"32-14 gy.","m15":"32-15 gy.","m16":"32-16 gy.",
     "r16_1":"R16-1 gy.","r16_2":"R16-2 gy.","r16_3":"R16-3 gy.","r16_4":"R16-4 gy.",
     "r16_5":"R16-5 gy.","r16_6":"R16-6 gy.","r16_7":"R16-7 gy.","r16_8":"R16-8 gy.",
-    "qf_1":"R8-1 gy.","qf_2":"R8-2 gy.","qf_3":"R8-3 gy.","qf_4":"R8-4 gy.",    "sf_1":"R4-1 gy.","sf_2":"R4-2 gy.",
-    "sf_1_loser":"R4-1 veszt.","sf_2_loser":"R4-2 veszt.",  };
+    "qf_1":"R8-1 gy.","qf_2":"R8-2 gy.","qf_3":"R8-3 gy.","qf_4":"R8-4 gy.",
+    "sf_1":"R4-1 gy.","sf_2":"R4-2 gy.",
+    "sf_1_loser":"R4-1 veszt.","sf_2_loser":"R4-2 veszt.",
+  };
   return M[s]||s;
 }
 
@@ -230,10 +229,8 @@ const R16=[
   ["r16_7","m15","m14","2026-07-07T18:00:00"],["r16_8","m13","m16","2026-07-07T22:00:00"],
 ];
 const QF=[
-  ["qf_1","r16_2","r16_1","2026-07-09T22:00:00"],
-  ["qf_2","r16_5","r16_6","2026-07-10T21:00:00"],
-  ["qf_3","r16_3","r16_4","2026-07-11T23:00:00"],
-  ["qf_4","r16_7","r16_8","2026-07-12T03:00:00"],
+  ["qf_1","r16_2","r16_1","2026-07-09T22:00:00"],["qf_2","r16_5","r16_6","2026-07-10T21:00:00"],
+  ["qf_3","r16_3","r16_4","2026-07-11T23:00:00"],["qf_4","r16_7","r16_8","2026-07-12T03:00:00"],
 ];
 const SF=[
   ["sf_1","qf_1","qf_2","2026-07-14T21:00:00"],
@@ -267,8 +264,7 @@ function groupStandings(group,matches){
     else if(rh===ra){s[m.home].pts++;s[m.away].pts++;s[m.home].d++;s[m.away].d++;}
     else{s[m.away].pts+=3;s[m.away].w++;s[m.home].l++;}
   });
-  return Object.entries(s).map(([name,v])=>({name,...v}))
-    .sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
+  return Object.entries(s).map(([name,v])=>({name,...v})).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
 }
 
 function bestThirds(matches){
@@ -294,25 +290,21 @@ function getQualified(matches){
 function matchesWithTeams(matches){
   const q=getQualified(matches);
   const ov=S.overrideTeams||{};
-
   const winner=(res,id)=>{
     const m=res.find(x=>x.id===id);
     if(!m||!m.result)return null;
     return +m.result.home>+m.result.away?m.home:(+m.result.away>+m.result.home?m.away:null);
   };
-
   let res=matches.map(m=>({...m}));
-
   for(let pass=0;pass<6;pass++){
     res=res.map(m=>{
       if(m.phase==="csoport")return m;
       if(!m.hs&&!m.as)return m;
-      const h=ov[m.id]?.home || q[m.hs] || winner(res,m.hs) || (m.hs&&m.hs.startsWith("3rd")?slotLabel(m.hs):null) || slotLabel(m.hs);
-      const a=ov[m.id]?.away || q[m.as] || winner(res,m.as) || (m.as&&m.as.startsWith("3rd")?slotLabel(m.as):null) || slotLabel(m.as);
+      const h=ov[m.id]?.home||q[m.hs]||winner(res,m.hs)||(m.hs?.startsWith("3rd")?slotLabel(m.hs):null)||m.home||slotLabel(m.hs);
+      const a=ov[m.id]?.away||q[m.as]||winner(res,m.as)||(m.as?.startsWith("3rd")?slotLabel(m.as):null)||m.away||slotLabel(m.as);
       return{...m,home:h,away:a};
     });
   }
-
   return res;
 }
 
@@ -347,8 +339,9 @@ function showScreen(id){
   });
 }
 
+// ── State ──
 const S={
-  username:"",tab:"matches",adminTab:"results",
+  username:"",tab:"matches",
   phase:"csoport",group:"A",
   matches:[...ALL_MATCHES],tips:{},users:[],
   delConfirm:null,editRes:{},pollTimer:null,
@@ -373,6 +366,7 @@ function startPolling(){
   S.pollTimer=setInterval(pollData,5000);
 }
 
+// ── Login ──
 document.getElementById("nameInput").addEventListener("input",function(){
   const isAdm=this.value.trim().toLowerCase()==="admin";
   const pi=document.getElementById("pwInput");
@@ -393,7 +387,8 @@ async function doLogin(){
   if(!pw){err.textContent="Add meg a PIN kódot!";err.style.display="block";return;}
   if(n.toLowerCase()==="admin"){
     if(pw!==ADMIN_PW){err.textContent="Hibás jelszó!";err.style.display="block";return;}
-    S.username=ADMIN;S.tab="results";
+    S.username=ADMIN;
+    S.tab="results";
   }else{
     const ex=await dbGet(`users/${n}`);
     if(ex&&ex.pin){
@@ -403,6 +398,7 @@ async function doLogin(){
       await dbSet(`users/${n}`,{pin:pw});
     }
     S.username=n;
+    S.tab="matches";
   }
   showScreen("main");
   await pollData();
@@ -410,11 +406,12 @@ async function doLogin(){
   renderMain();
 }
 
+// ── Render ──
 function renderMain(){
   const isAdmin=S.username===ADMIN;
   document.getElementById("hdr").innerHTML=renderHdr(isAdmin);
   document.getElementById("tabsWrap").innerHTML=renderTabs(isAdmin);
-  document.getElementById("content").innerHTML=renderContent(isAdmin);
+  document.getElementById("contentWrap").innerHTML=renderContent(isAdmin);
   document.getElementById("modalWrap").innerHTML=S.delConfirm?renderModal():"";
   bindEvents(isAdmin);
 }
@@ -444,8 +441,9 @@ function renderContent(isAdmin){
   if(S.tab==="matches")return renderMatches(vis);
   if(S.tab==="standings")return renderStandings();
   if(S.tab==="leaderboard")return renderLeaderboard();
-  if(S.tab==="admin"&&isAdmin)return renderAdmin(vis);
-  return"";
+  if(S.tab==="results")return renderResults();
+  if(S.tab==="players")return renderPlayers();
+  return`<p class="empty">Nincs tartalom.</p>`;
 }
 
 function renderPhaseFilters(style){
@@ -469,6 +467,8 @@ function badgeHtml(p){
   return"";
 }
 
+const SCORE_ONINPUT=`oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1&&this.value[0]==='0')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"`;
+
 function renderMatches(vis){
   let h=renderPhaseFilters("g");
   h+=`<div class="match-list">`;
@@ -481,7 +481,7 @@ function renderMatches(vis){
     const aVal=myTip.away??"";
     const score=locked
       ?`<div class="score-wrap"><div class="score-box">${hVal||"-"}</div><span class="score-sep">–</span><div class="score-box">${aVal||"-"}</div></div>`
-      :`<div class="score-wrap"><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="${hVal}" data-mid="${m.id}" data-side="home" oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1&&this.value[0]==='0')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"/><span class="score-sep">–</span><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="${aVal}" data-mid="${m.id}" data-side="away" oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1&&this.value[0]==='0')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"/></div>`;
+      :`<div class="score-wrap"><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="${hVal}" data-mid="${m.id}" data-side="home" ${SCORE_ONINPUT}/><span class="score-sep">–</span><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="${aVal}" data-mid="${m.id}" data-side="away" ${SCORE_ONINPUT}/></div>`;
     const resRow=`<div class="result-row">${m.result?`Végeredmény: <b>${m.result.home}–${m.result.away}</b> ${badgeHtml(pts)}`:"Végeredmény: –"}</div>`;
     const savedRow=(!locked&&saved)?`<div class="saved-tip-row">✓ Tipp elmentve: ${saved.home}–${saved.away}</div>`:"";
     h+=`<div class="match-card">
@@ -572,64 +572,67 @@ function renderLeaderboard(){
   return h+`</div>`;
 }
 
-function renderAdmin(vis){
-  let h=`<div class="admin-tabs">
-    <button class="admin-tab${S.adminTab==="results"?" active":""}" data-atab="results">📋 Eredmények</button>
-    <button class="admin-tab${S.adminTab==="players"?" active":""}" data-atab="players">👥 Játékosok</button>
-  </div>`;
-
-  if(S.adminTab==="results"){
-    h+=`<p style="color:#888;font-size:13px;margin-bottom:10px">A mezőből kilépve automatikusan ment.</p>`;
-    h+=renderPhaseFilters("p");
-
-    if(S.phase!=="csoport"){
-      // Nincs külön override szekció
-    }
-
+function renderResults(){
+  const vis=S.matches.filter(m=>m.phase===S.phase&&(S.phase!=="csoport"||m.group===S.group));
+  let h=`<p style="color:#888;font-size:13px;margin-bottom:10px">A mezőből kilépve automatikusan ment.</p>`;
+  h+=renderPhaseFilters("p");
+  if(S.phase!=="csoport"&&vis.length>0){
+    h+=`<div class="override-box" style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:#b49eff;margin-bottom:8px">✏️ Továbbjutók javítása</div>
+      <p style="color:#888;font-size:12px;margin-bottom:10px">Elgépelés esetén itt javíthatod a csapatneveket.</p>
+      <div style="display:flex;flex-direction:column;gap:8px">`;
     vis.forEach(m=>{
-      const er=S.editRes[m.id]||{};
-      const ovH=S.overrideTeams[m.id]?.home||m.home;
-      const ovA=S.overrideTeams[m.id]?.away||m.away;
-      // Ha a csapatnév még nem ismert (slot label), szerkeszthető szövegmező
-      const isKnownH=FLAG_CODES[m.home]!==undefined||S.overrideTeams[m.id]?.home;
-      const isKnownA=FLAG_CODES[m.away]!==undefined||S.overrideTeams[m.id]?.away;
-      const homeField=isKnownH
-        ?`<span class="team team-home" style="font-size:13px">${m.home}${fi(m.home)}</span>`
-        :`<input type="text" value="${ovH}" data-override="${m.id}" data-override-side="home" class="ov-input team-home" placeholder="Hazai csapat" style="flex:1;text-align:right"/>`;
-      const awayField=isKnownA
-        ?`<span class="team team-away" style="font-size:13px">${fi(m.away)}${m.away}</span>`
-        :`<input type="text" value="${ovA}" data-override="${m.id}" data-override-side="away" class="ov-input team-away" placeholder="Vendég csapat" style="flex:1;text-align:left"/>`;
-      h+=`<div class="admin-card">
-        <div class="admin-head">${m.group?m.group+" csoport":(m.label||"")} · ${fmtTime(m.time)}</div>
-        <div class="admin-body">
-          ${homeField}
-          <input class="score-input" type="text" inputmode="numeric" placeholder="–" value="${er.home??(m.result?.home??'')}" data-res="${m.id}" data-res-side="home" style="border-color:rgba(180,158,255,.33)" oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1&&this.value[0]==='0')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"/>
-          <span class="score-sep">–</span>
-          <input class="score-input" type="text" inputmode="numeric" placeholder="–" value="${er.away??(m.result?.away??'')}" data-res="${m.id}" data-res-side="away" style="border-color:rgba(180,158,255,.33)" oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1&&this.value[0]==='0')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"/>
-          ${awayField}
-        </div>
+      const oh=S.overrideTeams[m.id]?.home||m.home;
+      const oa=S.overrideTeams[m.id]?.away||m.away;
+      h+=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:11px;color:#888;min-width:80px">${m.label||m.id}</span>
+        <input type="text" value="${oh}" data-override="${m.id}" data-override-side="home" class="ov-input" placeholder="Hazai" style="flex:1"/>
+        <span style="color:#444">–</span>
+        <input type="text" value="${oa}" data-override="${m.id}" data-override-side="away" class="ov-input" placeholder="Vendég" style="flex:1"/>
       </div>`;
     });
+    h+=`</div></div>`;
   }
+  vis.forEach(m=>{
+    const er=S.editRes[m.id]||{};
+    const isKnownH=!!FLAG_CODES[m.home]||!!S.overrideTeams[m.id]?.home;
+    const isKnownA=!!FLAG_CODES[m.away]||!!S.overrideTeams[m.id]?.away;
+    const ovH=S.overrideTeams[m.id]?.home||m.home;
+    const ovA=S.overrideTeams[m.id]?.away||m.away;
+    const homeField=isKnownH
+      ?`<span class="team team-home" style="font-size:13px">${m.home}${fi(m.home)}</span>`
+      :`<input type="text" value="${ovH}" data-override="${m.id}" data-override-side="home" class="ov-input" placeholder="Hazai" style="flex:1;text-align:right"/>`;
+    const awayField=isKnownA
+      ?`<span class="team team-away" style="font-size:13px">${fi(m.away)}${m.away}</span>`
+      :`<input type="text" value="${ovA}" data-override="${m.id}" data-override-side="away" class="ov-input" placeholder="Vendég" style="flex:1;text-align:left"/>`;
+    h+=`<div class="admin-card">
+      <div class="admin-head">${m.group?m.group+" csoport":(m.label||"")} · ${fmtTime(m.time)}</div>
+      <div class="admin-body">
+        ${homeField}
+        <input class="score-input" type="text" inputmode="numeric" maxlength="2" placeholder="–" value="${er.home??(m.result?.home??'')}" data-res="${m.id}" data-res-side="home" style="border-color:rgba(180,158,255,.33)" ${SCORE_ONINPUT}/>
+        <span class="score-sep">–</span>
+        <input class="score-input" type="text" inputmode="numeric" maxlength="2" placeholder="–" value="${er.away??(m.result?.away??'')}" data-res="${m.id}" data-res-side="away" style="border-color:rgba(180,158,255,.33)" ${SCORE_ONINPUT}/>
+        ${awayField}
+      </div>
+    </div>`;
+  });
+  return h||`<p class="empty">Nincs mérkőzés.</p>`;
+}
 
-  if(S.adminTab==="players"){
-    h+=`<p style="color:#888;font-size:13px;margin-bottom:14px">Regisztrált játékosok kezelése.</p>`;
-    if(!S.users.length)h+=`<p class="empty">Még nincs regisztrált játékos.</p>`;
-    S.users.forEach((u,i)=>{
-      const pts=getPoints(u),tc=Object.keys(S.tips[u]||{}).length;
-      h+=`<div class="player-card">
-        <div class="player-avatar">${u[0].toUpperCase()}</div>
-        <div style="flex:1"><div style="font-weight:600;font-size:14px">${u}</div><div style="font-size:12px;color:#444">${tc} tipp · ${pts} pont</div></div>
-        <span style="font-size:12px;padding:3px 10px;border-radius:8px;background:#1c1c1c;color:#888;border:1px solid #272727">#${i+1}</span>
-        <button class="del-btn" data-del="${u}">🗑 Törlés</button>
-      </div>`;
-    });
-    if(S.users.length){
-      const tot=Object.values(S.tips).reduce((s,t)=>s+Object.keys(t).length,0);
-      h+=`<div style="margin-top:16px;background:#141414;border:1px solid #272727;border-radius:12px;padding:12px 16px;font-size:13px;color:#888"><strong style="color:#b49eff">Összesítés:</strong> ${S.users.length} játékos · ${tot} tipp</div>`;
-    }
-  }
-  return h;
+function renderPlayers(){
+  let h=`<p style="color:#888;font-size:13px;margin-bottom:14px">Regisztrált játékosok kezelése.</p>`;
+  if(!S.users.length)return h+`<p class="empty">Még nincs regisztrált játékos.</p>`;
+  S.users.forEach((u,i)=>{
+    const pts=getPoints(u),tc=Object.keys(S.tips[u]||{}).length;
+    h+=`<div class="player-card">
+      <div class="player-avatar">${u[0].toUpperCase()}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:14px">${u}</div><div style="font-size:12px;color:#444">${tc} tipp · ${pts} pont</div></div>
+      <span style="font-size:12px;padding:3px 10px;border-radius:8px;background:#1c1c1c;color:#888;border:1px solid #272727">#${i+1}</span>
+      <button class="del-btn" data-del="${u}">🗑 Törlés</button>
+    </div>`;
+  });
+  const tot=Object.values(S.tips).reduce((s,t)=>s+Object.keys(t).length,0);
+  return h+`<div style="margin-top:16px;background:#141414;border:1px solid #272727;border-radius:12px;padding:12px 16px;font-size:13px;color:#888"><strong style="color:#b49eff">Összesítés:</strong> ${S.users.length} játékos · ${tot} tipp</div>`;
 }
 
 function renderModal(){
@@ -654,16 +657,11 @@ function bindEvents(isAdmin){
     document.getElementById("pwInput").value="";
     const ph=document.getElementById("pwHint");if(ph)ph.style.display="block";
   });
-  document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{
-    S.tab=b.dataset.tab;
-    // Ha eredmények fülre lép, alapból csoport fázis
-    if(S.tab==="results"&&S.phase==="csoport")S.phase="csoport";
-    renderMain();
-  }));
+  document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{S.tab=b.dataset.tab;renderMain();}));
   document.querySelectorAll("[data-phase]").forEach(b=>b.addEventListener("click",()=>{S.phase=b.dataset.phase;renderMain();}));
   document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click",()=>{S.group=b.dataset.group;renderMain();}));
 
-  // Tipp inputok — automatikus mentés blur-re
+  // Tipp inputok
   document.querySelectorAll(".score-input[data-mid]").forEach(inp=>{
     inp.addEventListener("input",()=>{
       const mid=inp.dataset.mid,side=inp.dataset.side,val=inp.value;
@@ -697,7 +695,7 @@ function bindEvents(isAdmin){
     });
   });
 
-  // Admin eredmény inputok — automatikus mentés blur-re
+  // Admin eredmény inputok
   document.querySelectorAll(".score-input[data-res]").forEach(inp=>{
     inp.addEventListener("change",()=>{
       const mid=inp.dataset.res,side=inp.dataset.resSide;
@@ -707,14 +705,13 @@ function bindEvents(isAdmin){
     inp.addEventListener("blur",async()=>{
       const mid=inp.dataset.res;
       const r=S.editRes[mid];
-      if(!r||r.home===undefined||r.away===undefined)return;
-      if(r.home===""||r.away==="")return;
+      if(!r||r.home===undefined||r.away===undefined||r.home===""||r.away==="")return;
       await dbSet(`results/${mid}`,{home:r.home,away:r.away});
       await pollData();
     });
   });
 
-  // Override csapatnevek — automatikus mentés blur-re + zászló frissítés
+  // Override csapatnevek
   document.querySelectorAll("[data-override]").forEach(inp=>{
     inp.addEventListener("blur",async()=>{
       const mid=inp.dataset.override,side=inp.dataset.overrideSide,val=inp.value.trim();
@@ -722,7 +719,6 @@ function bindEvents(isAdmin){
       S.overrideTeams[mid]=S.overrideTeams[mid]||{};
       S.overrideTeams[mid][side]=val;
       await dbSet(`overrides/${mid}/${side}`,val);
-      // Ha ismert csapatnév, cseréljük le az inputot zászlós szövegre
       if(FLAG_CODES[val]){
         const isHome=side==="home";
         const span=document.createElement("span");
