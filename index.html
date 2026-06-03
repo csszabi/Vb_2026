@@ -559,7 +559,7 @@ function renderMain(){
 }
 
 function renderHdr(isAdmin){
-  const fav = S.users_data?.[S.username]?.fav;
+  const fav = (S.users_data?.[S.username]?.fav)||null;
   const elim = fav && isEliminated(fav, S.matches);
   const favHtml = fav
     ? `<div style="font-size:11px;color:${elim?"#ff5252":"#00c97a"};display:flex;align-items:center;gap:4px;margin-top:2px">${fi(fav,14)} ${fav}${elim?" (kiesett)":""}</div>`
@@ -703,15 +703,14 @@ function getPoints(u){
 }
 
 function renderLeaderboard(){
-  const board=[...S.users].map(u=>({name:u,pts:getPoints(u)})).sort((a,b)=>b.pts-a.pts);
-  const mc=i=>i===0?"#f0a500":i===1?"#aaa":i===2?"#cd7f32":"#444";
+  const board=[...S.users].map(u=>({name:u,pts:getPoints(u)})).sort((a,b)=>b.pts-a.pts);  const mc=i=>i===0?"#f0a500":i===1?"#aaa":i===2?"#cd7f32":"#444";
   let h=`<div class="board-list">`;
   if(!board.length)h+=`<p class="empty">Még nincs résztvevő.</p>`;
   board.forEach((u,i)=>{
-    const fav=S.users_data?.[u]?.fav;
+    const fav=(S.users_data?.[u.name]?.fav)||null;
     const elim=fav&&isEliminated(fav,S.matches);
     const favHtml=fav
-      ?`<span style="font-size:11px;color:${elim?"#ff5252":"#888"};display:flex;align-items:center;gap:3px">${fi(fav,14)}${fav}${elim?" (kiesett)":""}</span>`
+      ?`<div style="font-size:11px;color:${elim?"#ff5252":"#888"};display:flex;align-items:center;gap:3px;margin-top:2px">${fi(fav,14)} ${fav}${elim?" (kiesett)":""}</div>`
       :"";
     h+=`<div class="board-row${u.name===S.username?" me":""}${i===0?" first":i===1?" second":""}">
       <span class="rank-circle" style="border:1px solid ${mc(i)}55;color:${mc(i)}">${i+1}</span>
