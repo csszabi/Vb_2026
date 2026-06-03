@@ -8,8 +8,6 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0a0a0a;color:#f0f0f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
 button{cursor:pointer;font-family:inherit}
-input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
-input[type=number]{-moz-appearance:textfield}
 .app{max-width:720px;margin:0 auto;padding:12px}
 .loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px}
 .loading-bar{width:180px;height:3px;background:#1c1c1c;border-radius:4px;overflow:hidden}
@@ -17,7 +15,7 @@ input[type=number]{-moz-appearance:textfield}
 .login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem 1rem}
 .login-card{background:#141414;border-radius:20px;border:1px solid #333;padding:40px 36px;max-width:380px;width:100%;text-align:center}
 .login-icon{width:72px;height:72px;border-radius:50%;background:rgba(0,201,122,.12);border:1px solid rgba(0,201,122,.2);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px}
-.login-input{padding:9px 13px;border-radius:10px;border:1px solid #333;font-size:15px;outline:none;color:#f0f0f0;background:#1a1a1a;width:100%;margin-bottom:10px}
+.login-input{padding:9px 13px;border-radius:10px;border:1px solid #333;font-size:15px;outline:none;color:#f0f0f0;background:#1a1a1a;width:100%;margin-bottom:10px;display:block}
 .login-btn{padding:9px 18px;border-radius:10px;border:none;background:#00c97a;color:#000;font-weight:700;font-size:15px;width:100%;margin-bottom:12px}
 .pw-error{color:#ff5252;font-size:12px;margin-top:4px;display:none}
 .main-wrap{border-radius:18px;overflow:hidden;border:1px solid #333}
@@ -98,21 +96,20 @@ input[type=number]{-moz-appearance:textfield}
 .p3{background:rgba(240,165,0,.15);color:#f0a500}
 .p4{background:rgba(255,82,82,.1);color:#ff5252}
 .flag-name{display:flex;align-items:center;gap:5px}
-.override-box{background:#141414;border:1px solid #272727;border-radius:12px;padding:12px 16px;margin-bottom:14px}
 .ov-input{padding:5px 8px;border-radius:7px;border:1px solid rgba(180,158,255,.33);font-size:13px;color:#f0f0f0;background:#222;outline:none}
 </style>
 </head>
 <body>
 
-<div id="loading" style="display:none">
+<div id="pg-loading" style="display:none">
   <div class="loading-wrap">
     <div style="font-size:40px">⚽</div>
-    <div style="font-size:15px;font-weight:500;color:#00c97a">Adatok betöltése…</div>
+    <div style="font-size:15px;font-weight:500;color:#00c97a">Betöltés…</div>
     <div class="loading-bar"><div class="loading-bar-inner"></div></div>
   </div>
 </div>
 
-<div id="login" style="display:none">
+<div id="pg-login" style="display:none">
   <div class="login-wrap">
     <div class="login-card">
       <div class="login-icon">⚽</div>
@@ -120,17 +117,15 @@ input[type=number]{-moz-appearance:textfield}
       <p style="color:#f0f0f0;font-size:14px;margin-bottom:4px">Add meg a neved a belépéshez</p>
       <p style="color:#ccc;font-size:12px;margin-bottom:24px">Jún. 11 – Júl. 19 · USA · Kanada · Mexikó</p>
       <input id="nameInput" class="login-input" placeholder="pl. Kovács Péter" autocomplete="off"/>
-      <div id="pwWrap">
-        <input id="pwInput" class="login-input" type="password" placeholder="PIN kód (4 szám)" maxlength="4" inputmode="numeric"/>
-        <p id="pwHint" style="color:#f0f0f0;font-size:12px;margin-bottom:10px">A belépéshez adj meg egy felhasználónevet és PIN kódot!</p>
-      </div>
+      <input id="pwInput" class="login-input" type="password" placeholder="PIN kód (4 szám)" maxlength="4" inputmode="numeric"/>
+      <p id="pwHint" style="color:#f0f0f0;font-size:12px;margin-bottom:10px">A belépéshez adj meg egy felhasználónevet és PIN kódot!</p>
       <button class="login-btn" id="loginBtn">Belépés</button>
       <p class="pw-error" id="pwError"></p>
     </div>
   </div>
 </div>
 
-<div id="main" style="display:none">
+<div id="pg-main" style="display:none">
   <div id="toast" class="toast"></div>
   <div id="modalWrap"></div>
   <div class="app">
@@ -143,14 +138,29 @@ input[type=number]{-moz-appearance:textfield}
 </div>
 
 <script>
+// ─────────────────────────────────────────
 const DB_URL   = "https://foci-vb-default-rtdb.europe-west1.firebasedatabase.app";
 const ADMIN    = "admin";
 const ADMIN_PW = "Teddypicker1";
+const LS_USER  = "vb26_user";
+const LS_TAB   = "vb26_tab";
+// ─────────────────────────────────────────
 
 const dbGet = async p=>{try{const r=await fetch(`${DB_URL}/${p}.json`);return r.ok?r.json():null;}catch{return null;}};
 const dbSet = async(p,v)=>{try{await fetch(`${DB_URL}/${p}.json`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)});}catch{}};
 const dbDel = async p=>{try{await fetch(`${DB_URL}/${p}.json`,{method:"DELETE"});}catch{}};
 
+function lsGet(k){try{return localStorage.getItem(k);}catch{return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch{}}
+function lsDel(k){try{localStorage.removeItem(k);}catch{}}
+
+function showPage(id){
+  ["pg-loading","pg-login","pg-main"].forEach(x=>{
+    document.getElementById(x).style.display = x===id ? "block" : "none";
+  });
+}
+
+// ── Adatok ──────────────────────────────
 const FLAG_CODES={
   "Mexikó":"mx","Dél-Afrika":"za","Dél-Korea":"kr","Csehország":"cz",
   "Kanada":"ca","Svájc":"ch","Katar":"qa","Bosznia-Hercegovina":"ba",
@@ -251,6 +261,16 @@ const PHASE_ORDER=["csoport","R32","R16","NF","EF","3H","D"];
 const PHASE_LABEL={csoport:"Csoportmérkőzések",R32:"32-es kör",R16:"Nyolcaddöntők",NF:"Negyeddöntők",EF:"Elődöntők","3H":"3. helyért",D:"Döntő"};
 const GROUPS=["A","B","C","D","E","F","G","H","I","J","K","L"];
 
+// ── State ────────────────────────────────
+const S={
+  username:"", tab:"matches",
+  phase:"csoport", group:"A",
+  matches:[...ALL_MATCHES], tips:{}, users:[],
+  delConfirm:null, editRes:{}, pollTimer:null,
+  savedTips:{}, overrideTeams:{},
+};
+
+// ── Standings ────────────────────────────
 function groupStandings(group,matches){
   const teams=[...new Set(matches.filter(m=>m.group===group).flatMap(m=>[m.home,m.away]))];
   const s={};
@@ -266,7 +286,6 @@ function groupStandings(group,matches){
   });
   return Object.entries(s).map(([name,v])=>({name,...v})).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
 }
-
 function bestThirds(matches){
   return GROUPS.map(g=>{
     const st=groupStandings(g,matches);
@@ -275,7 +294,6 @@ function bestThirds(matches){
     return{...st[2],group:g};
   }).filter(Boolean).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf).slice(0,8);
 }
-
 function getQualified(matches){
   const q={};
   GROUPS.forEach(g=>{
@@ -286,7 +304,6 @@ function getQualified(matches){
   bestThirds(matches).forEach((t,i)=>q[`3rd_${i+1}`]=t.name);
   return q;
 }
-
 function matchesWithTeams(matches){
   const q=getQualified(matches);
   const ov=S.overrideTeams||{};
@@ -307,20 +324,20 @@ function matchesWithTeams(matches){
       if(!m.hs&&!m.as)return m;
       const resolveSlot=slot=>{
         if(!slot)return null;
-        if(ov[m.id]?.[slot==="home"?"home":"away"])return null; // override kezeli
         if(q[slot])return q[slot];
         if(slot.startsWith("3rd"))return slotLabel(slot);
         if(slot.endsWith("_loser"))return loser(res,slot.replace("_loser",""));
-        return winner(res,slot)||m.home||slotLabel(slot);
+        return winner(res,slot);
       };
-      const h=ov[m.id]?.home||resolveSlot(m.hs)||m.home||slotLabel(m.hs);
-      const a=ov[m.id]?.away||resolveSlot(m.as)||m.away||slotLabel(m.as);
-      return{...m,home:h,away:a};
+      const h=ov[m.id]?.home||resolveSlot(m.hs)||m.home;
+      const a=ov[m.id]?.away||resolveSlot(m.as)||m.away;
+      return{...m,home:h||slotLabel(m.hs),away:a||slotLabel(m.as)};
     });
   }
   return res;
 }
 
+// ── Helpers ──────────────────────────────
 function calcPts(tip,res){
   if(!res||tip.home===""||tip.away==="")return null;
   const th=+tip.home,ta=+tip.away,rh=+res.home,ra=+res.away;
@@ -345,22 +362,9 @@ function showToast(msg,type="ok"){
   t.textContent=msg;t.className=`toast toast-${type}`;t.style.display="block";
   setTimeout(()=>t.style.display="none",2500);
 }
-function showScreen(id){
-  ["loading","login","main"].forEach(x=>{
-    const el=document.getElementById(x);
-    if(el)el.style.display=x===id?"block":"none";
-  });
-}
+const OINP=`oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1&&this.value[0]==='0')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"`;
 
-// ── State ──
-const S={
-  username:"",tab:"matches",
-  phase:"csoport",group:"A",
-  matches:[...ALL_MATCHES],tips:{},users:[],
-  delConfirm:null,editRes:{},pollTimer:null,
-  pendingTips:{},savedTips:{},overrideTeams:{},
-};
-
+// ── Poll ─────────────────────────────────
 async function pollData(){
   const[results,tips,users,overrides]=await Promise.all([
     dbGet("results"),dbGet("tips"),dbGet("users"),dbGet("overrides")
@@ -371,21 +375,21 @@ async function pollData(){
   S.tips=tips||{};
   S.users=users?Object.keys(users).filter(u=>u!==ADMIN):[];
   const ae=document.activeElement;
-  const isTyping=ae&&(ae.dataset.mid||ae.dataset.res||ae.dataset.override);
-  if(S.username&&!isTyping)renderMain();
+  const busy=ae&&(ae.dataset.mid||ae.dataset.res||ae.dataset.override);
+  if(S.username&&!busy)renderMain();
 }
 function startPolling(){
   if(S.pollTimer)clearInterval(S.pollTimer);
   S.pollTimer=setInterval(pollData,5000);
 }
 
-// ── Login ──
+// ── Login ────────────────────────────────
 document.getElementById("nameInput").addEventListener("input",function(){
   const isAdm=this.value.trim().toLowerCase()==="admin";
   const pi=document.getElementById("pwInput");
   const ph=document.getElementById("pwHint");
-  if(isAdm){pi.placeholder="Admin jelszó";pi.removeAttribute("maxlength");pi.removeAttribute("inputmode");if(ph)ph.style.display="none";}
-  else{pi.placeholder="PIN kód (4 szám)";pi.setAttribute("maxlength","4");pi.setAttribute("inputmode","numeric");if(ph)ph.style.display="block";}
+  if(isAdm){pi.placeholder="Admin jelszó";pi.removeAttribute("maxlength");pi.removeAttribute("inputmode");ph.style.display="none";}
+  else{pi.placeholder="PIN kód (4 szám)";pi.setAttribute("maxlength","4");pi.setAttribute("inputmode","numeric");ph.style.display="block";}
 });
 document.getElementById("nameInput").addEventListener("keydown",e=>e.key==="Enter"&&doLogin());
 document.getElementById("pwInput").addEventListener("keydown",e=>e.key==="Enter"&&doLogin());
@@ -400,8 +404,7 @@ async function doLogin(){
   if(!pw){err.textContent="Add meg a PIN kódot!";err.style.display="block";return;}
   if(n.toLowerCase()==="admin"){
     if(pw!==ADMIN_PW){err.textContent="Hibás jelszó!";err.style.display="block";return;}
-    S.username=ADMIN;
-    S.tab="results";
+    S.username=ADMIN; S.tab="results";
   }else{
     const ex=await dbGet(`users/${n}`);
     if(ex&&ex.pin){
@@ -410,24 +413,25 @@ async function doLogin(){
       if(pw.length<4){err.textContent="A PIN kód 4 számjegyű legyen!";err.style.display="block";return;}
       await dbSet(`users/${n}`,{pin:pw});
     }
-    S.username=n;
-    S.tab="matches";
-    saveSession(n,"matches");
+    S.username=n; S.tab="matches";
   }
-  showScreen("main");
+  lsSet(LS_USER,S.username);
+  lsSet(LS_TAB,S.tab);
+  showPage("pg-main");
   await pollData();
   startPolling();
   renderMain();
 }
 
-// ── Render ──
+// ── Render ───────────────────────────────
 function renderMain(){
   const isAdmin=S.username===ADMIN;
+  lsSet(LS_TAB,S.tab);
   document.getElementById("hdr").innerHTML=renderHdr(isAdmin);
   document.getElementById("tabsWrap").innerHTML=renderTabs(isAdmin);
-  document.getElementById("contentWrap").innerHTML=renderContent(isAdmin);
+  document.getElementById("contentWrap").innerHTML=renderContent();
   document.getElementById("modalWrap").innerHTML=S.delConfirm?renderModal():"";
-  bindEvents(isAdmin);
+  bindEvents();
 }
 
 function renderHdr(isAdmin){
@@ -450,13 +454,13 @@ function renderTabs(isAdmin){
   return`<div class="tabs">${tabs.map(([k,l])=>`<button class="tab-btn${S.tab===k?" active":""}" data-tab="${k}">${l}</button>`).join("")}</div>`;
 }
 
-function renderContent(isAdmin){
+function renderContent(){
   const vis=S.matches.filter(m=>m.phase===S.phase&&(S.phase!=="csoport"||m.group===S.group));
-  if(S.tab==="matches")return renderMatches(vis);
-  if(S.tab==="standings")return renderStandings();
+  if(S.tab==="matches")    return renderMatches(vis);
+  if(S.tab==="standings")  return renderStandings();
   if(S.tab==="leaderboard")return renderLeaderboard();
-  if(S.tab==="results")return renderResults();
-  if(S.tab==="players")return renderPlayers();
+  if(S.tab==="results")    return renderResults();
+  if(S.tab==="players")    return renderPlayers();
   return`<p class="empty">Nincs tartalom.</p>`;
 }
 
@@ -481,8 +485,6 @@ function badgeHtml(p){
   return"";
 }
 
-const SCORE_ONINPUT=`oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length>1&&this.value[0]==='0')this.value=this.value.slice(1);if(this.value.length>2)this.value=this.value.slice(0,2)"`;
-
 function renderMatches(vis){
   let h=renderPhaseFilters("g");
   h+=`<div class="match-list">`;
@@ -495,7 +497,7 @@ function renderMatches(vis){
     const aVal=myTip.away??"";
     const score=locked
       ?`<div class="score-wrap"><div class="score-box">${hVal||"-"}</div><span class="score-sep">–</span><div class="score-box">${aVal||"-"}</div></div>`
-      :`<div class="score-wrap"><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="${hVal}" data-mid="${m.id}" data-side="home" ${SCORE_ONINPUT}/><span class="score-sep">–</span><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="${aVal}" data-mid="${m.id}" data-side="away" ${SCORE_ONINPUT}/></div>`;
+      :`<div class="score-wrap"><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="${hVal}" data-mid="${m.id}" data-side="home" ${OINP}/><span class="score-sep">–</span><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="${aVal}" data-mid="${m.id}" data-side="away" ${OINP}/></div>`;
     const resRow=`<div class="result-row">${m.result?`Végeredmény: <b>${m.result.home}–${m.result.away}</b> ${badgeHtml(pts)}`:"Végeredmény: –"}</div>`;
     const savedRow=(!locked&&saved)?`<div class="saved-tip-row">✓ Tipp elmentve: ${saved.home}–${saved.away}</div>`:"";
     h+=`<div class="match-card">
@@ -523,36 +525,33 @@ function renderStandings(){
   const played=S.matches.filter(m=>m.phase==="csoport"&&m.group===g&&m.result).length;
   h+=`<div class="table-card"><div class="table-title">${g} csoport ${played>=6?"✓":""}</div>
     <table class="standings-table">
-      <thead><tr><th>#</th><th>Csapat</th><th>M</th><th>Gy</th><th>D</th><th>V</th><th>G</th><th>GK</th><th>P</th></tr></thead>
-      <tbody>`;
+      <thead><tr><th>#</th><th>Csapat</th><th>M</th><th>Gy</th><th>D</th><th>V</th><th>G</th><th>GK</th><th>P</th></tr></thead><tbody>`;
   st.forEach((t,i)=>{
     const rc=i===0?"q1":i===1?"q2":i===2?"q3":"";
     const pc=i===0?"p1":i===1?"p2":i===2?"p3":"p4";
-    const gkColor=t.gd>0?"#00c97a":t.gd<0?"#ff5252":"#f0f0f0";
+    const gkC=t.gd>0?"#00c97a":t.gd<0?"#ff5252":"#f0f0f0";
     h+=`<tr class="${rc}"><td><span class="pos-dot ${pc}">${i+1}</span></td>
       <td><div class="flag-name">${fi(t.name,18)}<span>${t.name}</span></div></td>
       <td>${t.mp}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
-      <td>${t.gf}:${t.ga}</td><td style="color:${gkColor}">${t.gd>0?"+":""}${t.gd}</td>
+      <td>${t.gf}:${t.ga}</td><td style="color:${gkC}">${t.gd>0?"+":""}${t.gd}</td>
       <td style="font-weight:700">${t.pts}</td></tr>`;
   });
   h+=`</tbody></table></div>`;
   h+=`<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#888;margin-bottom:16px">
     <span><span style="color:#00c97a">■</span> 1–2. hely: továbbjut</span>
-    <span><span style="color:#f0a500">■</span> 3. hely: esetleg továbbjut</span>
-  </div>`;
+    <span><span style="color:#f0a500">■</span> 3. hely: esetleg továbbjut</span></div>`;
   const b8=bestThirds(S.matches);
   if(b8.length>0){
     h+=`<div class="table-card"><div class="table-title">Legjobb 3. helyezettek (top 8 továbbjut)</div>
       <table class="standings-table">
-        <thead><tr><th>#</th><th>Csapat</th><th>Cs.</th><th>M</th><th>Gy</th><th>D</th><th>V</th><th>G</th><th>GK</th><th>P</th></tr></thead>
-        <tbody>`;
+        <thead><tr><th>#</th><th>Csapat</th><th>Cs.</th><th>M</th><th>Gy</th><th>D</th><th>V</th><th>G</th><th>GK</th><th>P</th></tr></thead><tbody>`;
     b8.forEach((t,i)=>{
-      const gkColor=t.gd>0?"#00c97a":t.gd<0?"#ff5252":"#f0f0f0";
+      const gkC=t.gd>0?"#00c97a":t.gd<0?"#ff5252":"#f0f0f0";
       h+=`<tr class="${i<8?"q2":""}"><td><span class="pos-dot ${i<8?"p2":"p4"}">${i+1}</span></td>
         <td><div class="flag-name">${fi(t.name,18)}<span>${t.name}</span></div></td>
         <td style="color:#888">${t.group}</td>
         <td>${t.mp}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
-        <td>${t.gf}:${t.ga}</td><td style="color:${gkColor}">${t.gd>0?"+":""}${t.gd}</td>
+        <td>${t.gf}:${t.ga}</td><td style="color:${gkC}">${t.gd>0?"+":""}${t.gd}</td>
         <td style="font-weight:700">${t.pts}</td></tr>`;
     });
     h+=`</tbody></table></div>`;
@@ -590,29 +589,26 @@ function renderResults(){
   const vis=S.matches.filter(m=>m.phase===S.phase&&(S.phase!=="csoport"||m.group===S.group));
   let h=`<p style="color:#888;font-size:13px;margin-bottom:10px">A mezőből kilépve automatikusan ment.</p>`;
   h+=renderPhaseFilters("p");
-  if(S.phase!=="csoport"&&vis.length>0){
-    // nincs külön szerkesztő szekció
-  }
   vis.forEach(m=>{
     const er=S.editRes[m.id]||{};
     const isKnownH=!!FLAG_CODES[m.home]||!!S.overrideTeams[m.id]?.home;
     const isKnownA=!!FLAG_CODES[m.away]||!!S.overrideTeams[m.id]?.away;
     const ovH=S.overrideTeams[m.id]?.home||m.home;
     const ovA=S.overrideTeams[m.id]?.away||m.away;
-    const homeField=isKnownH
+    const hF=isKnownH
       ?`<span class="team team-home" style="font-size:13px">${m.home}${fi(m.home)}</span>`
       :`<input type="text" value="${ovH}" data-override="${m.id}" data-override-side="home" class="ov-input" placeholder="Hazai" style="flex:1;text-align:right"/>`;
-    const awayField=isKnownA
+    const aF=isKnownA
       ?`<span class="team team-away" style="font-size:13px">${fi(m.away)}${m.away}</span>`
       :`<input type="text" value="${ovA}" data-override="${m.id}" data-override-side="away" class="ov-input" placeholder="Vendég" style="flex:1;text-align:left"/>`;
     h+=`<div class="admin-card">
       <div class="admin-head">${m.group?m.group+" csoport":(m.label||"")} · ${fmtTime(m.time)}</div>
       <div class="admin-body">
-        ${homeField}
-        <input class="score-input" type="text" inputmode="numeric" maxlength="2" placeholder="–" value="${er.home??(m.result?.home??'')}" data-res="${m.id}" data-res-side="home" style="border-color:rgba(180,158,255,.33)" ${SCORE_ONINPUT}/>
+        ${hF}
+        <input class="score-input" type="text" inputmode="numeric" maxlength="2" placeholder="–" value="${er.home??(m.result?.home??'')}" data-res="${m.id}" data-res-side="home" style="border-color:rgba(180,158,255,.33)" ${OINP}/>
         <span class="score-sep">–</span>
-        <input class="score-input" type="text" inputmode="numeric" maxlength="2" placeholder="–" value="${er.away??(m.result?.away??'')}" data-res="${m.id}" data-res-side="away" style="border-color:rgba(180,158,255,.33)" ${SCORE_ONINPUT}/>
-        ${awayField}
+        <input class="score-input" type="text" inputmode="numeric" maxlength="2" placeholder="–" value="${er.away??(m.result?.away??'')}" data-res="${m.id}" data-res-side="away" style="border-color:rgba(180,158,255,.33)" ${OINP}/>
+        ${aF}
       </div>
     </div>`;
   });
@@ -640,7 +636,7 @@ function renderModal(){
     <div class="modal">
       <div style="font-size:32px;margin-bottom:12px">🗑</div>
       <div style="font-weight:700;font-size:16px;margin-bottom:8px">Játékos törlése</div>
-      <div style="color:#888;font-size:14px">Biztosan törlöd <strong style="color:#f0f0f0">${S.delConfirm}</strong> játékost? Minden tippje törlődik.</div>
+      <div style="color:#888;font-size:14px">Biztosan törlöd <strong style="color:#f0f0f0">${S.delConfirm}</strong> játékost?</div>
       <div class="modal-btns">
         <button class="modal-cancel" id="cancelDel">Mégse</button>
         <button class="modal-del" id="confirmDel">Törlés</button>
@@ -649,79 +645,44 @@ function renderModal(){
   </div>`;
 }
 
-function bindEvents(isAdmin){
+// ── Events ───────────────────────────────
+function bindEvents(){
   document.getElementById("logoutBtn")?.addEventListener("click",()=>{
-    clearInterval(S.pollTimer);S.username="";S.tab="matches";
-    // ── Indítás ──
-async function init(){
-  let savedUser = null;
-  let savedTab  = null;
-  try {
-    savedUser = localStorage.getItem("vb26_user") || sessionStorage.getItem("vb26_user");
-    savedTab  = localStorage.getItem("vb26_tab")  || sessionStorage.getItem("vb26_tab");
-  } catch(e) {}
-
-  if(savedUser){
-    showScreen("loading");
-    S.username = savedUser;
-    S.tab = savedTab || (savedUser === ADMIN ? "results" : "matches");
-    await pollData();
-    startPolling();
-    showScreen("main");
-    renderMain();
-  } else {
-    showScreen("login");
-  }
-}
-
-function saveSession(user, tab){
-  try {
-    localStorage.setItem("vb26_user", user);
-    localStorage.setItem("vb26_tab",  tab);
-    sessionStorage.setItem("vb26_user", user);
-    sessionStorage.setItem("vb26_tab",  tab);
-  } catch(e) {}
-}
-
-function clearSession(){
-  try {
-    localStorage.removeItem("vb26_user");
-    localStorage.removeItem("vb26_tab");
-    sessionStorage.removeItem("vb26_user");
-    sessionStorage.removeItem("vb26_tab");
-  } catch(e) {}
-}
-
-init();
+    clearInterval(S.pollTimer);
+    S.username=""; S.tab="matches";
+    lsDel(LS_USER); lsDel(LS_TAB);
+    showPage("pg-login");
     document.getElementById("nameInput").value="";
     document.getElementById("pwInput").value="";
-    const ph=document.getElementById("pwHint");if(ph)ph.style.display="block";
+    document.getElementById("pwHint").style.display="block";
   });
-  document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{S.tab=b.dataset.tab;renderMain();}));
+
+  document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{
+    S.tab=b.dataset.tab; lsSet(LS_TAB,S.tab); renderMain();
+  }));
   document.querySelectorAll("[data-phase]").forEach(b=>b.addEventListener("click",()=>{S.phase=b.dataset.phase;renderMain();}));
   document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click",()=>{S.group=b.dataset.group;renderMain();}));
 
   // Tipp inputok
   document.querySelectorAll(".score-input[data-mid]").forEach(inp=>{
     inp.addEventListener("input",()=>{
-      const mid=inp.dataset.mid,side=inp.dataset.side,val=inp.value;
+      const {mid,side}=inp.dataset;
       S.tips[S.username]=S.tips[S.username]||{};
       S.tips[S.username][mid]=S.tips[S.username][mid]||{};
-      S.tips[S.username][mid][side]=val;
+      S.tips[S.username][mid][side]=inp.value;
     });
     inp.addEventListener("blur",async()=>{
-      const mid=inp.dataset.mid,side=inp.dataset.side,val=inp.value;
+      const {mid,side}=inp.dataset; const val=inp.value;
       if(val==="")return;
-      const otherSide=side==="home"?"away":"home";
-      const otherInp=document.querySelector(`.score-input[data-mid="${mid}"][data-side="${otherSide}"]`);
-      const otherVal=otherInp?otherInp.value:((S.tips[S.username]||{})[mid]||{})[otherSide]??"";
+      const os=side==="home"?"away":"home";
+      const oi=document.querySelector(`.score-input[data-mid="${mid}"][data-side="${os}"]`);
+      const ov2=oi?oi.value:((S.tips[S.username]||{})[mid]||{})[os]??"";
       S.tips[S.username]=S.tips[S.username]||{};
       S.tips[S.username][mid]=S.tips[S.username][mid]||{};
       S.tips[S.username][mid][side]=val;
       await dbSet(`tips/${S.username}/${mid}/${side}`,val);
-      if(val!==""&&otherVal!==""){
-        const hv=side==="home"?val:otherVal;
-        const av=side==="away"?val:otherVal;
+      if(val&&ov2){
+        const hv=side==="home"?val:ov2, av=side==="away"?val:ov2;
         S.savedTips[mid]={home:hv,away:av};
         const card=inp.closest(".match-card");
         if(card){
@@ -738,7 +699,7 @@ init();
   // Admin eredmény inputok
   document.querySelectorAll(".score-input[data-res]").forEach(inp=>{
     inp.addEventListener("change",()=>{
-      const mid=inp.dataset.res,side=inp.dataset.resSide;
+      const mid=inp.dataset.res, side=inp.dataset.resSide;
       S.editRes[mid]=S.editRes[mid]||{};
       S.editRes[mid][side]=inp.value;
     });
@@ -754,17 +715,16 @@ init();
   // Override csapatnevek
   document.querySelectorAll("[data-override]").forEach(inp=>{
     inp.addEventListener("blur",async()=>{
-      const mid=inp.dataset.override,side=inp.dataset.overrideSide,val=inp.value.trim();
+      const mid=inp.dataset.override, side=inp.dataset.overrideSide, val=inp.value.trim();
       if(!val)return;
       S.overrideTeams[mid]=S.overrideTeams[mid]||{};
       S.overrideTeams[mid][side]=val;
       await dbSet(`overrides/${mid}/${side}`,val);
       if(FLAG_CODES[val]){
-        const isHome=side==="home";
         const span=document.createElement("span");
-        span.className=`team ${isHome?"team-home":"team-away"}`;
+        span.className=`team ${side==="home"?"team-home":"team-away"}`;
         span.style.fontSize="13px";
-        span.innerHTML=isHome?`${val}${fi(val)}`:`${fi(val)}${val}`;
+        span.innerHTML=side==="home"?`${val}${fi(val)}`:`${fi(val)}${val}`;
         inp.replaceWith(span);
       }
       await pollData();
@@ -775,12 +735,29 @@ init();
   document.getElementById("cancelDel")?.addEventListener("click",()=>{S.delConfirm=null;renderMain();});
   document.getElementById("confirmDel")?.addEventListener("click",async()=>{
     const name=S.delConfirm;
-    await dbDel(`users/${name}`);await dbDel(`tips/${name}`);
-    S.delConfirm=null;showToast(`${name} törölve`,"info");await pollData();
+    await dbDel(`users/${name}`); await dbDel(`tips/${name}`);
+    S.delConfirm=null; showToast(`${name} törölve`,"info"); await pollData();
   });
 }
 
-showScreen("login");
+// ── Indítás ──────────────────────────────
+async function init(){
+  const savedUser=lsGet(LS_USER);
+  const savedTab=lsGet(LS_TAB);
+  if(savedUser){
+    showPage("pg-loading");
+    S.username=savedUser;
+    S.tab=savedTab||(savedUser===ADMIN?"results":"matches");
+    await pollData();
+    startPolling();
+    showPage("pg-main");
+    renderMain();
+  } else {
+    showPage("pg-login");
+  }
+}
+
+init();
 </script>
 </body>
 </html>
