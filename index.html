@@ -412,6 +412,8 @@ async function doLogin(){
     }
     S.username=n;
     S.tab="matches";
+    localStorage.setItem("vb26_user",n);
+    localStorage.setItem("vb26_tab","matches");
   }
   showScreen("main");
   await pollData();
@@ -651,7 +653,23 @@ function renderModal(){
 function bindEvents(isAdmin){
   document.getElementById("logoutBtn")?.addEventListener("click",()=>{
     clearInterval(S.pollTimer);S.username="";S.tab="matches";
+    // ── Indítás: visszajelentkezés ha volt mentett session ──
+async function init(){
+  const savedUser=localStorage.getItem("vb26_user");
+  const savedTab=localStorage.getItem("vb26_tab");
+  if(savedUser){
+    showScreen("loading");
+    S.username=savedUser;
+    S.tab=savedTab||( savedUser===ADMIN?"results":"matches");
+    await pollData();
+    startPolling();
+    showScreen("main");
+    renderMain();
+  }else{
     showScreen("login");
+  }
+}
+init();
     document.getElementById("nameInput").value="";
     document.getElementById("pwInput").value="";
     const ph=document.getElementById("pwHint");if(ph)ph.style.display="block";
