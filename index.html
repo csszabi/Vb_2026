@@ -209,8 +209,7 @@ function slotLabel(s){
     "m13":"32-13 gy.","m14":"32-14 gy.","m15":"32-15 gy.","m16":"32-16 gy.",
     "r16_1":"R16-1 gy.","r16_2":"R16-2 gy.","r16_3":"R16-3 gy.","r16_4":"R16-4 gy.",
     "r16_5":"R16-5 gy.","r16_6":"R16-6 gy.","r16_7":"R16-7 gy.","r16_8":"R16-8 gy.",
-    "qf_1":"R8-1 gy.","qf_2":"R8-2 gy.","qf_3":"R8-3 gy.","qf_4":"R8-4 gy.",
-    "sf_1":"R4-1 gy.","sf_2":"R4-2 gy.",
+    "qf_1":"R8-1 gy.","qf_2":"R8-2 gy.","qf_3":"R8-3 gy.","qf_4":"R8-4 gy.",    "sf_1":"R4-1 gy.","sf_2":"R4-2 gy.",
     "sf_1_loser":"R4-1 veszt.","sf_2_loser":"R4-2 veszt.",  };
   return M[s]||s;
 }
@@ -297,31 +296,25 @@ function matchesWithTeams(matches){
   const q=getQualified(matches);
   const ov=S.overrideTeams||{};
 
-  // 1. lépés: csoport slotok feloldása
-  const step1=matches.map(m=>{
-    if(m.phase==="csoport")return m;
-    if(!m.hs&&!m.as)return m;
-    const h=ov[m.id]?.home||(q[m.hs]||slotLabel(m.hs));
-    const a=ov[m.id]?.away||(q[m.as]||slotLabel(m.as));
-    return{...m,home:h,away:a};
-  });
-
-  // 2. lépés: KO győztesek feloldása
-  const winner=id=>{
-    const m=step1.find(x=>x.id===id);
+  const winner=(res,id)=>{
+    const m=res.find(x=>x.id===id);
     if(!m||!m.result)return null;
     return +m.result.home>+m.result.away?m.home:(+m.result.away>+m.result.home?m.away:null);
   };
 
-  return step1.map(m=>{
-    if(m.phase==="csoport")return m;
-    if(!m.hs&&!m.as)return m;
-    if(S.overrideTeams[m.id]?.home||S.overrideTeams[m.id]?.away)return m;
-    // Elődöntő, 3. helyért, döntő: csak győztes feloldása, egyébként marad az alap label
-    const h=q[m.hs]||winner(m.hs)||(step1.find(x=>x.id===m.hs)?.result?null:m.home)||slotLabel(m.hs);
-    const a=q[m.as]||winner(m.as)||(step1.find(x=>x.id===m.as)?.result?null:m.away)||slotLabel(m.as);
-    return{...m,home:h||m.home,away:a||m.away};
-  });
+  let res=matches.map(m=>({...m}));
+
+  for(let pass=0;pass<6;pass++){
+    res=res.map(m=>{
+      if(m.phase==="csoport")return m;
+      if(!m.hs&&!m.as)return m;
+      const h=ov[m.id]?.home || q[m.hs] || winner(res,m.hs) || (m.hs&&m.hs.startsWith("3rd")?slotLabel(m.hs):null) || slotLabel(m.hs);
+      const a=ov[m.id]?.away || q[m.as] || winner(res,m.as) || (m.as&&m.as.startsWith("3rd")?slotLabel(m.as):null) || slotLabel(m.as);
+      return{...m,home:h,away:a};
+    });
+  }
+
+  return res;
 }
 
 function calcPts(tip,res){
