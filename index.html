@@ -136,20 +136,6 @@ button{cursor:pointer;font-family:inherit}
       <p style="color:#555;font-size:12px;margin-bottom:20px">Ez nem módosítható később. Győzelmenkénti +1 pont, VB győzelem: +5 pont!</p>
       <select id="favSelect" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #333;background:#1a1a1a;color:#f0f0f0;font-size:14px;margin-bottom:16px;outline:none;cursor:pointer">
         <option value="">– Válassz csapatot –</option>
-        ${Object.entries({
-          A:["Mexikó","Dél-Afrika","Dél-Korea","Csehország"],
-          B:["Kanada","Bosznia-Hercegovina","Svájc","Katar"],
-          C:["Brazília","Marokkó","Skócia","Haiti"],
-          D:["USA","Paraguay","Ausztrália","Törökország"],
-          E:["Németország","Curaçao","Elefántcsontpart","Ecuador"],
-          F:["Hollandia","Japán","Svédország","Tunézia"],
-          G:["Belgium","Egyiptom","Irán","Új-Zéland"],
-          H:["Spanyolország","Zöld-foki-szigetek","Szaúd-Arábia","Uruguay"],
-          I:["Franciaország","Szenegál","Norvégia","Irak"],
-          J:["Argentína","Algéria","Ausztria","Jordánia"],
-          K:["Portugália","Kongói DK","Üzbegisztán","Kolumbia"],
-          L:["Anglia","Horvátország","Panama","Ghána"],
-        }).map(([g,ts])=>`<optgroup label="${g} csoport">${ts.map(t=>`<option value="${t}">${t}</option>`).join("")}</optgroup>`).join("")}
       </select>
       <button class="login-btn" id="favConfirmBtn">Megerősítés</button>
     </div>
@@ -525,11 +511,35 @@ async function doLogin(){
 
 function showFavPicker(){
   showPage("pg-fav");
+  // Feltöltjük a legördülő menüt JS-sel
+  const sel = document.getElementById("favSelect");
+  sel.innerHTML = '<option value="">– Válassz csapatot –</option>';
+  const teams = {
+    A:["Mexikó","Dél-Afrika","Dél-Korea","Csehország"],
+    B:["Kanada","Bosznia-Hercegovina","Svájc","Katar"],
+    C:["Brazília","Marokkó","Skócia","Haiti"],
+    D:["USA","Paraguay","Ausztrália","Törökország"],
+    E:["Németország","Curaçao","Elefántcsontpart","Ecuador"],
+    F:["Hollandia","Japán","Svédország","Tunézia"],
+    G:["Belgium","Egyiptom","Irán","Új-Zéland"],
+    H:["Spanyolország","Zöld-foki-szigetek","Szaúd-Arábia","Uruguay"],
+    I:["Franciaország","Szenegál","Norvégia","Irak"],
+    J:["Argentína","Algéria","Ausztria","Jordánia"],
+    K:["Portugália","Kongói DK","Üzbegisztán","Kolumbia"],
+    L:["Anglia","Horvátország","Panama","Ghána"],
+  };
+  Object.entries(teams).forEach(([g, ts])=>{
+    const og = document.createElement("optgroup");
+    og.label = g + " csoport";
+    ts.forEach(t=>{ const o=document.createElement("option"); o.value=t; o.textContent=t; og.appendChild(o); });
+    sel.appendChild(og);
+  });
+
   document.getElementById("favConfirmBtn").onclick = async()=>{
-    const sel = document.getElementById("favSelect").value;
-    if(!sel){ return; }
+    const val = document.getElementById("favSelect").value;
+    if(!val) return;
     const existing = await dbGet(`users/${S.username}`);
-    await dbSet(`users/${S.username}`,{...(existing||{}), fav:sel});
+    await dbSet(`users/${S.username}`,{...(existing||{}), fav:val});
     S.tab = "matches";
     lsSet(LS_TAB,"matches");
     await pollData();
