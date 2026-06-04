@@ -740,7 +740,7 @@ function renderResults(){
         +['90','H','B'].map(function(v){
           const labels={'90':"90'",H:'Hossz.',B:'B\u00fcnt.'};
           const active=curResMode===v;
-          return '<button class="mode-btn'+(active?" mode-active":"")+'" data-res-mode-mid="'+m.id+'" data-res-mode="'+v+'">'+labels[v]+'</button>';
+          return '<button class="mode-btn'+(active?" mode-active":"")+'" data-rmode-mid="'+m.id+'" data-rmode="'+v+'">'+labels[v]+'</button>';
         }).join("")
         +'</div>'
       :"";
