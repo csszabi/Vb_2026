@@ -576,7 +576,6 @@ function renderMain(){
   document.getElementById("modalWrap").innerHTML=S.delConfirm?renderModal():"";
   bindEvents();
 }
-
 function renderHdr(isAdmin){
   const fav=(S.users_data[S.username]&&S.users_data[S.username].fav)||null;
   const elim=fav&&isEliminated(fav,S.matches);
