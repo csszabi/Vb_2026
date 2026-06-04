@@ -326,7 +326,7 @@ const GROUPS=["A","B","C","D","E","F","G","H","I","J","K","L"];
 const S={
   username:"",tab:"matches",phase:"csoport",group:"A",
   matches:[...ALL_MATCHES],tips:{},users_data:{},users:[],
-  delConfirm:null,editRes:{},pollTimer:null,
+  delConfirm:null,editRes:{},pollTimer:null,favEdit:null,
   savedTips:{},overrideTeams:{},
 };
 
@@ -757,12 +757,26 @@ function renderResults(){
 }
 
 function renderPlayers(){
+  const ALL_TEAMS=Object.values(TEAMS_BY_GROUP).flat();
   let h='<p style="color:#888;font-size:13px;margin-bottom:14px">Regisztr\u00e1lt j\u00e1t\u00e9kosok kezel\u00e9se.</p>';
   if(!S.users.length)return h+'<p class="empty">M\u00e9g nincs regisztr\u00e1lt j\u00e1t\u00e9kos.</p>';
   S.users.forEach(function(u,i){
     const pts=getPoints(u);
     const tc=Object.keys(S.tips[u]||{}).length;
-    h+='<div class="player-card"><div class="player-avatar">'+u[0].toUpperCase()+'</div><div style="flex:1"><div style="font-weight:600;font-size:14px">'+u+'</div><div style="font-size:12px;color:#444">'+tc+' tipp &middot; '+pts+' pont</div></div><span style="font-size:12px;padding:3px 10px;border-radius:8px;background:#1c1c1c;color:#888;border:1px solid #272727">#'+(i+1)+'</span><button class="del-btn" data-del="'+u+'">&#x1F5D1; T\u00f6rl\u00e9s</button></div>';
+    const fav=(S.users_data[u]&&S.users_data[u].fav)||null;
+    const favHtml=fav?('\u2022 '+fi(fav,13)+' '+fav):'\u2022 nincs kedvenc';
+    const isEditing=S.favEdit===u;
+    const editBtn='<button class="fav-edit-btn" data-favuser="'+u+'" style="font-size:11px;padding:2px 8px;border-radius:7px;border:1px solid #333;background:transparent;color:#888;margin-left:6px">'+( isEditing?'\u2715':'\u270F\uFE0F csapat')+'</button>';
+    let selectHtml='';
+    if(isEditing){
+      selectHtml='<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px">'
+        +ALL_TEAMS.map(function(t){
+          const sel=t===fav;
+          return '<button class="fav-pick-btn" data-favuser="'+u+'" data-favteam="'+t+'" style="font-size:11px;padding:3px 9px;border-radius:8px;border:1px solid '+(sel?'#00c97a':'#333')+';background:'+(sel?'rgba(0,201,122,.15)':'transparent')+';color:'+(sel?'#00c97a':'#888')+';cursor:pointer">'+fi(t,13)+' '+t+'</button>';
+        }).join('')
+        +'</div>';
+    }
+    h+='<div class="player-card" style="flex-wrap:wrap"><div class="player-avatar">'+u[0].toUpperCase()+'</div><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px;display:flex;align-items:center;flex-wrap:wrap;gap:4px">'+u+editBtn+'</div><div style="font-size:12px;color:#444;margin-top:2px">'+tc+' tipp &middot; '+pts+' pont '+favHtml+'</div>'+selectHtml+'</div><span style="font-size:12px;padding:3px 10px;border-radius:8px;background:#1c1c1c;color:#888;border:1px solid #272727">#'+(i+1)+'</span><button class="del-btn" data-del="'+u+'">&#x1F5D1; T\u00f6rl\u00e9s</button></div>';
   });
   const tot=Object.values(S.tips).reduce(function(s,t){return s+Object.keys(t).length;},0);
   return h+'<div style="margin-top:16px;background:#141414;border:1px solid #272727;border-radius:12px;padding:12px 16px;font-size:13px;color:#888"><strong style="color:#b49eff">\u00d6sszeg: </strong>'+S.users.length+' j\u00e1t\u00e9kos &middot; '+tot+' tipp</div>';
@@ -893,6 +907,24 @@ async function init(){
       await dbSet("results/"+mid,{home:r.home,away:r.away,mode:mode});
       await pollData();
     }
+  });
+  // Kedvenc csapat szerkesztés (admin)
+  document.body.addEventListener("click",function(e){
+    const btn=e.target.closest(".fav-edit-btn");
+    if(!btn)return;
+    const u=btn.dataset.favuser;
+    S.favEdit=(S.favEdit===u)?null:u;
+    renderMain();
+  });
+  document.body.addEventListener("click",async function(e){
+    const btn=e.target.closest(".fav-pick-btn");
+    if(!btn)return;
+    const u=btn.dataset.favuser,team=btn.dataset.favteam;
+    await dbSet("users/"+u+"/fav",team);
+    S.favEdit=null;
+    showToast(u+" kedvenc csapata: "+team);
+    await pollData();
+    renderMain();
   });
   // Tesztadatok gomb
   document.body.addEventListener("click",async function(e){
