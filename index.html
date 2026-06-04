@@ -656,8 +656,12 @@ function renderMatches(vis){
       : isKO&&locked&&myTip.mode
         ?'<div style="text-align:center;font-size:11px;color:#888;padding:4px 0 6px">Tippelt mód: <b style="color:#f0f0f0">'+({'90':"90'",H:"Hosszabbítás",B:"Büntetők"}[myTip.mode]||myTip.mode)+"</b></div>"
         :"";
+    const myFav=(S.users_data[S.username]&&S.users_data[S.username].fav)||null;
+    const rh2=m.result?+m.result.home:null,ra2=m.result?+m.result.away:null;
+    const favWon=myFav&&m.result&&((rh2>ra2&&m.home===myFav)||(ra2>rh2&&m.away===myFav));
+    const favBadge=favWon?'<span class="badge" style="background:rgba(240,165,0,.12);color:#f0a500;margin-left:4px">\u2b50 +1 kedvenc</span>':"";
     const resRow='<div class="result-row">'+(m.result
-      ?'V\u00e9geredm\u00e9ny: <b>'+m.result.home+'\u2013'+m.result.away+'</b>'+(m.result.mode?' <span style="font-size:11px;color:#888">('+({'90':"90'",H:"Hosszabbítás",B:"Büntetők"}[m.result.mode]||m.result.mode)+')</span>':'')+" "+badgeHtml(pts)
+      ?'V\u00e9geredm\u00e9ny: <b>'+m.result.home+'\u2013'+m.result.away+'</b>'+(m.result.mode?' <span style="font-size:11px;color:#888">('+({'90':"90'",H:"Hosszabbítás",B:"Büntetők"}[m.result.mode]||m.result.mode)+')</span>':'')+" "+badgeHtml(pts)+favBadge
       :"V\u00e9geredm\u00e9ny: \u2013")+"</div>";
     const savedRow=(!locked&&saved)?'<div class="saved-tip-row">&#x2713; Tipp elmentve: '+saved.home+"\u2013"+saved.away+(saved.mode?' ('+({'90':"90'",H:"Hosszabbítás",B:"Büntetők"}[saved.mode]||saved.mode)+')':'')+"</div>":"";
     h+='<div class="match-card"><div class="match-head"><span class="match-info">'+(m.group?m.group+" csoport":(m.label||""))+" &middot; "+fmtTime(m.time)+'</span><div>'+(locked&&!m.result?'<span class="badge badge-locked">Lez\u00e1rva</span>':"")+"</div></div>"
