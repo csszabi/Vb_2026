@@ -624,6 +624,7 @@ function renderPhaseFilters(style){
 }
 
 function badgeHtml(p){
+  if(p===4)return'<span class="badge badge-3">3+1 pont &#x2713;</span>';
   if(p===3)return'<span class="badge badge-3">3 pont &#x2713;</span>';
   if(p===2)return'<span class="badge badge-2">2 pont</span>';
   if(p===1)return'<span class="badge badge-1">1 pont</span>';
@@ -660,8 +661,10 @@ function renderMatches(vis){
     const rh2=m.result?+m.result.home:null,ra2=m.result?+m.result.away:null;
     const favWon=myFav&&m.result&&((rh2>ra2&&m.home===myFav)||(ra2>rh2&&m.away===myFav));
     const favBadge=favWon?'<span class="badge" style="background:rgba(240,165,0,.12);color:#f0a500;margin-left:4px">\u2b50 +1 kedvenc</span>':"";
+    const modeBonusEarned=isKO&&pts>0&&m.result&&m.result.mode&&myTip.mode&&m.result.mode===myTip.mode;
+    const modeBadge=modeBonusEarned?'<span class="badge" style="background:rgba(180,158,255,.12);color:#b49eff;margin-left:4px">+1 kim\u00e9netel</span>':"";
     const resRow='<div class="result-row">'+(m.result
-      ?'V\u00e9geredm\u00e9ny: <b>'+m.result.home+'\u2013'+m.result.away+'</b>'+(m.result.mode?' <span style="font-size:11px;color:#888">('+({'90':"90'",H:"Hosszabbítás",B:"Büntetők"}[m.result.mode]||m.result.mode)+')</span>':'')+" "+badgeHtml(pts)+favBadge
+      ?'V\u00e9geredm\u00e9ny: <b>'+m.result.home+'\u2013'+m.result.away+'</b>'+(m.result.mode?' <span style="font-size:11px;color:#888">('+({'90':"90'",H:"Hosszabbítás",B:"Büntetők"}[m.result.mode]||m.result.mode)+')</span>':'')+" "+badgeHtml(pts)+modeBadge+favBadge
       :"V\u00e9geredm\u00e9ny: \u2013")+"</div>";
     const savedRow=(!locked&&saved)?'<div class="saved-tip-row">&#x2713; Tipp elmentve: '+saved.home+"\u2013"+saved.away+(saved.mode?' ('+({'90':"90'",H:"Hosszabbítás",B:"Büntetők"}[saved.mode]||saved.mode)+')':'')+"</div>":"";
     h+='<div class="match-card"><div class="match-head"><span class="match-info">'+(m.group?m.group+" csoport":(m.label||""))+" &middot; "+fmtTime(m.time)+'</span><div>'+(locked&&!m.result?'<span class="badge badge-locked">Lez\u00e1rva</span>':"")+"</div></div>"
