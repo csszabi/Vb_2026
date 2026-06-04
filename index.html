@@ -624,7 +624,7 @@ function renderPhaseFilters(style){
 }
 
 function badgeHtml(p){
-  if(p===4)return'<span class="badge badge-3">3+1 pont &#x2713;</span>';
+  if(p===4)return'<span class="badge badge-3">3 pont &#x2713;</span>';
   if(p===3)return'<span class="badge badge-3">3 pont &#x2713;</span>';
   if(p===2)return'<span class="badge badge-2">2 pont</span>';
   if(p===1)return'<span class="badge badge-1">1 pont</span>';
@@ -660,7 +660,7 @@ function renderMatches(vis){
     const myFav=(S.users_data[S.username]&&S.users_data[S.username].fav)||null;
     const rh2=m.result?+m.result.home:null,ra2=m.result?+m.result.away:null;
     const favWon=myFav&&m.result&&((rh2>ra2&&m.home===myFav)||(ra2>rh2&&m.away===myFav));
-    const favBadge=favWon?'<span class="badge" style="background:rgba(240,165,0,.12);color:#f0a500;margin-left:4px">\u2b50 +1 kedvenc</span>':"";
+    const favBadge=favWon?'<span class="badge" style="background:rgba(240,165,0,.12);color:#f0a500;margin-left:4px">\u2b50 +1 kedvenc csapat</span>':"";
     const modeBonusEarned=isKO&&pts>0&&m.result&&m.result.mode&&myTip.mode&&m.result.mode===myTip.mode;
     const modeBadge=modeBonusEarned?'<span class="badge" style="background:rgba(180,158,255,.12);color:#b49eff;margin-left:4px">+1 kim\u00e9netel</span>':"";
     const resRow='<div class="result-row">'+(m.result
