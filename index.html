@@ -873,6 +873,23 @@ function bindEvents(){
 
 async function init(){
   if(lsGet("vb26_theme")==="light")document.body.classList.add("light");
+
+  // Admin módválasztó — egyszer regisztrálva
+  document.body.addEventListener("click",async function(e){
+    const btn=e.target.closest("[data-rmid]");
+    if(!btn)return;
+    const mid=btn.dataset.rmid, mode=btn.dataset.rval;
+    S.editRes[mid]=S.editRes[mid]||{};
+    S.editRes[mid].mode=mode;
+    btn.parentElement.querySelectorAll(".mode-btn").forEach(function(b){
+      b.classList.toggle("mode-active", b.dataset.rval===mode);
+    });
+    const r=S.editRes[mid];
+    if(r&&r.home!==undefined&&r.away!==undefined&&r.home!==""&&r.away!==""){
+      await dbSet("results/"+mid,{home:r.home,away:r.away,mode:mode});
+      await pollData();
+    }
+  });
   const savedUser=lsGet(LS_USER);
   const savedTab=lsGet(LS_TAB);
   if(savedUser){
