@@ -831,6 +831,7 @@ function bindEvents(){
       if(r.mode)toSave.mode=r.mode;
       await dbSet("results/"+mid,toSave);
       await pollData();
+      renderMain();
     });
   });
   document.querySelectorAll("[data-override]").forEach(function(inp){
