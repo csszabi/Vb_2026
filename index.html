@@ -719,6 +719,10 @@ function renderLeaderboard(){
 function renderResults(){
   const vis=S.matches.filter(function(m){return m.phase===S.phase&&(S.phase!=="csoport"||m.group===S.group);});
   let h='<p style="color:#888;font-size:13px;margin-bottom:10px">A mez\u0151b\u0151l kil\u00e9pve automatikusan ment.</p>';
+  // Teszt gomb csak csoportmérkőzéseknél
+  if(S.phase==="csoport"){
+    h+='<button id="testDataBtn" style="margin-bottom:12px;padding:7px 16px;border-radius:8px;border:1px solid rgba(240,165,0,.4);background:rgba(240,165,0,.1);color:#f0a500;font-size:12px;font-weight:600;cursor:pointer">🎲 Véletlenszerű teszteredmények betöltése</button>';
+  }
   h+=renderPhaseFilters("p");
   vis.forEach(function(m){
     const er=S.editRes[m.id]||{};
