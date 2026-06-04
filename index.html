@@ -98,7 +98,9 @@ button{cursor:pointer;font-family:inherit}
 .p3{background:rgba(240,165,0,.15);color:#f0a500}
 .p4{background:rgba(255,82,82,.1);color:#ff5252}
 .flag-name{display:flex;align-items:center;gap:5px}
-.ov-input{padding:5px 8px;border-radius:7px;border:1px solid rgba(180,158,255,.33);font-size:13px;color:#f0f0f0;background:#222;outline:none}
+.mode-btn{padding:4px 12px;border-radius:20px;font-size:12px;border:1px solid #333;background:transparent;color:#888;cursor:pointer;transition:all .15s}
+.mode-btn:hover{border-color:#00c97a;color:#00c97a}
+.mode-btn.mode-active{border-color:#00c97a;background:rgba(0,201,122,.15);color:#00c97a;font-weight:600}
 /* Light theme */
 body.light{background:#f0f4f0;color:#1a1a1a}
 body.light .main-wrap{border-color:#b2dfdb}
@@ -439,11 +441,17 @@ function calcPts(tip,res){
   if(!res||tip.home===""||tip.away==="")return null;
   const th=+tip.home,ta=+tip.away,rh=+res.home,ra=+res.away;
   if(isNaN(th)||isNaN(ta))return null;
-  if(th===rh&&ta===ra)return 3;
-  const td=th-ta,rd=rh-ra;
-  if(Math.sign(td)===Math.sign(rd)&&td===rd)return 2;
-  if(Math.sign(td)===Math.sign(rd))return 1;
-  return 0;
+  let pts=0;
+  if(th===rh&&ta===ra)pts=3;
+  else{
+    const td=th-ta,rd=rh-ra;
+    if(Math.sign(td)===Math.sign(rd)&&td===rd)pts=2;
+    else if(Math.sign(td)===Math.sign(rd))pts=1;
+    else pts=0;
+  }
+  // +1 bónusz ha eltalálta a döntés módját (csak kieséses meccseken)
+  if(pts>0&&res.mode&&tip.mode&&res.mode===tip.mode)pts+=1;
+  return pts;
 }
 function isLocked(t){return new Date()>=new Date(new Date(t).getTime()-7200000);}
 function fmtTime(iso){
@@ -633,14 +641,29 @@ function renderMatches(vis){
     const saved=S.savedTips[m.id];
     const hVal=myTip.home||"";
     const aVal=myTip.away||"";
+    const isKO=m.phase!=="csoport";
+    const curMode=myTip.mode||"";
     const score=locked
       ?'<div class="score-wrap"><div class="score-box">'+(hVal||"-")+'</div><span class="score-sep">\u2013</span><div class="score-box">'+(aVal||"-")+"</div></div>"
       :'<div class="score-wrap"><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="'+hVal+'" data-mid="'+m.id+'" data-side="home" '+OINP+'/><span class="score-sep">\u2013</span><input class="score-input" type="text" inputmode="numeric" maxlength="2" value="'+aVal+'" data-mid="'+m.id+'" data-side="away" '+OINP+"/></div>";
-    const resRow='<div class="result-row">'+(m.result?"V\u00e9geredm\u00e9ny: <b>"+m.result.home+"\u2013"+m.result.away+"</b> "+badgeHtml(pts):"V\u00e9geredm\u00e9ny: \u2013")+"</div>";
-    const savedRow=(!locked&&saved)?'<div class="saved-tip-row">&#x2713; Tipp elmentve: '+saved.home+"\u2013"+saved.away+"</div>":"";
+    const modeRow=isKO&&!locked
+      ?'<div style="display:flex;justify-content:center;gap:6px;padding:6px 12px 8px">'
+        +['90','H','B'].map(function(v){
+          const labels={'90':'90\'','H':'Hossz.','B':'Bünt.'};
+          const active=curMode===v;
+          return '<button class="mode-btn'+(active?" mode-active":"")+'" data-mid="'+m.id+'" data-mode="'+v+'">'+labels[v]+'</button>';
+        }).join("")
+        +'</div>'
+      : isKO&&locked&&myTip.mode
+        ?'<div style="text-align:center;font-size:11px;color:#888;padding:4px 0 6px">Tippelt mód: <b style="color:#f0f0f0">'+({'90':"90'",H:"Hosszabbítás",B:"Büntetők"}[myTip.mode]||myTip.mode)+"</b></div>"
+        :"";
+    const resRow='<div class="result-row">'+(m.result
+      ?'V\u00e9geredm\u00e9ny: <b>'+m.result.home+'\u2013'+m.result.away+'</b>'+(m.result.mode?' <span style="font-size:11px;color:#888">('+({'90':"90'",H:"Hosszabbítás",B:"Büntetők"}[m.result.mode]||m.result.mode)+')</span>':'')+" "+badgeHtml(pts)
+      :"V\u00e9geredm\u00e9ny: \u2013")+"</div>";
+    const savedRow=(!locked&&saved)?'<div class="saved-tip-row">&#x2713; Tipp elmentve: '+saved.home+"\u2013"+saved.away+(saved.mode?' ('+({'90':"90'",H:"Hosszabbítás",B:"Büntetők"}[saved.mode]||saved.mode)+')':'')+"</div>":"";
     h+='<div class="match-card"><div class="match-head"><span class="match-info">'+(m.group?m.group+" csoport":(m.label||""))+" &middot; "+fmtTime(m.time)+'</span><div>'+(locked&&!m.result?'<span class="badge badge-locked">Lez\u00e1rva</span>':"")+"</div></div>"
       +'<div class="match-body"><span class="team team-home">'+m.home+fi(m.home)+"</span>"+score+'<span class="team team-away">'+fi(m.away)+m.away+"</span></div>"
-      +resRow+savedRow+"</div>";
+      +modeRow+resRow+savedRow+"</div>";
   });
   return h+"</div>";
 }
@@ -710,11 +733,22 @@ function renderResults(){
     const aF=isKnownA
       ?'<span class="team team-away" style="font-size:13px">'+fi(m.away)+m.away+"</span>"
       :'<input type="text" value="'+ovA+'" data-override="'+m.id+'" data-override-side="away" class="ov-input" placeholder="Vend\u00e9g" style="flex:1;text-align:left"/>';
+    const isKO=m.phase!=="csoport";
+    const curResMode=(S.editRes[m.id]&&S.editRes[m.id].mode)||(m.result&&m.result.mode)||"";
+    const modeRow=isKO
+      ?'<div style="display:flex;justify-content:center;gap:6px;padding:6px 12px 8px">'
+        +['90','H','B'].map(function(v){
+          const labels={'90':"90'",H:'Hossz.',B:'B\u00fcnt.'};
+          const active=curResMode===v;
+          return '<button class="mode-btn'+(active?" mode-active":"")+'" data-res-mode-mid="'+m.id+'" data-res-mode="'+v+'">'+labels[v]+'</button>';
+        }).join("")
+        +'</div>'
+      :"";
     h+='<div class="admin-card"><div class="admin-head">'+(m.group?m.group+" csoport":(m.label||""))+" &middot; "+fmtTime(m.time)+'</div><div class="admin-body">'+hF
       +'<input class="score-input" type="text" inputmode="numeric" maxlength="2" placeholder="\u2013" value="'+(er.home!==undefined?er.home:(m.result&&m.result.home?m.result.home:""))+'" data-res="'+m.id+'" data-res-side="home" style="border-color:rgba(180,158,255,.33)" '+OINP+'/>'
       +'<span class="score-sep">\u2013</span>'
       +'<input class="score-input" type="text" inputmode="numeric" maxlength="2" placeholder="\u2013" value="'+(er.away!==undefined?er.away:(m.result&&m.result.away?m.result.away:""))+'" data-res="'+m.id+'" data-res-side="away" style="border-color:rgba(180,158,255,.33)" '+OINP+'/>'
-      +aF+"</div></div>";
+      +aF+"</div>"+modeRow+"</div>";
   });
   return h||'<p class="empty">Nincs m\u00e9rk\u0151z\u00e9s.</p>';
 }
@@ -793,7 +827,9 @@ function bindEvents(){
     inp.addEventListener("blur",async function(){
       const mid=inp.dataset.res,r=S.editRes[mid];
       if(!r||r.home===undefined||r.away===undefined||r.home===""||r.away==="")return;
-      await dbSet("results/"+mid,{home:r.home,away:r.away});
+      const toSave={home:r.home,away:r.away};
+      if(r.mode)toSave.mode=r.mode;
+      await dbSet("results/"+mid,toSave);
       await pollData();
     });
   });
@@ -814,7 +850,19 @@ function bindEvents(){
       await pollData();
     });
   });
-  document.querySelectorAll("[data-del]").forEach(function(b){b.addEventListener("click",function(){S.delConfirm=b.dataset.del;renderMain();});});
+  // Módválasztó gombok
+  document.querySelectorAll(".mode-btn[data-mode]").forEach(function(btn){
+    btn.addEventListener("click",async function(){
+      const mid=btn.dataset.mid,mode=btn.dataset.mode;
+      S.tips[S.username]=S.tips[S.username]||{};
+      S.tips[S.username][mid]=S.tips[S.username][mid]||{};
+      S.tips[S.username][mid].mode=mode;
+      await dbSet("tips/"+S.username+"/"+mid+"/mode",mode);
+      // Frissítjük a savedTips módját is
+      if(S.savedTips[mid])S.savedTips[mid].mode=mode;
+      renderMain();
+    });
+  });
   document.getElementById("cancelDel")&&document.getElementById("cancelDel").addEventListener("click",function(){S.delConfirm=null;renderMain();});
   document.getElementById("confirmDel")&&document.getElementById("confirmDel").addEventListener("click",async function(){
     const name=S.delConfirm;
