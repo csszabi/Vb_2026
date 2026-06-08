@@ -428,13 +428,13 @@ function getFavPts(team,matches){
   let pts=0;
   matches.filter(m=>m.result).forEach(m=>{
     const rh=+m.result.home,ra=+m.result.away;
-    if(rh>ra&&m.home===team)pts+=1;
-    else if(ra>rh&&m.away===team)pts+=1;
+    const w=m.result.winner||(rh>ra?m.home:(ra>rh?m.away:null));
+    if(w===team)pts+=1;
   });
   const final=matches.find(m=>m.id==="final");
   if(final&&final.result){
     const rh=+final.result.home,ra=+final.result.away;
-    const w=rh>ra?final.home:(ra>rh?final.away:null);
+    const w=final.result.winner||(rh>ra?final.home:(ra>rh?final.away:null));
     if(w===team)pts+=5;
   }
   return pts;
@@ -662,7 +662,8 @@ function renderMatches(vis){
         :"";
     const myFav=(S.users_data[S.username]&&S.users_data[S.username].fav)||null;
     const rh2=m.result?+m.result.home:null,ra2=m.result?+m.result.away:null;
-    const favWon=myFav&&m.result&&((rh2>ra2&&m.home===myFav)||(ra2>rh2&&m.away===myFav));
+    const matchWinner=m.result&&(m.result.winner||(rh2>ra2?m.home:(ra2>rh2?m.away:null)));
+    const favWon=myFav&&m.result&&matchWinner===myFav;
     const favBadge=favWon?'<span class="badge" style="background:rgba(240,165,0,.12);color:#f0a500;margin-left:4px">\u2b50 +1 kedvenc csapat</span>':"";
     const modeBonusEarned=isKO&&pts>0&&m.result&&m.result.mode&&myTip.mode&&m.result.mode===myTip.mode;
     const modeBadge=modeBonusEarned?'<span class="badge" style="background:rgba(180,158,255,.12);color:#b49eff;margin-left:4px">+1 kim\u00e9netel</span>':"";
@@ -751,6 +752,7 @@ function renderResults(){
       :'<input type="text" value="'+ovA+'" data-override="'+m.id+'" data-override-side="away" class="ov-input" placeholder="Vend\u00e9g" style="flex:1;text-align:left"/>';
     const isKO=m.phase!=="csoport";
     const curResMode=(S.editRes[m.id]&&S.editRes[m.id].mode)||(m.result&&m.result.mode)||"";
+    const curWinner=(S.editRes[m.id]&&S.editRes[m.id].winner)||(m.result&&m.result.winner)||"";
     const modeRow=isKO
       ?'<div style="display:flex;justify-content:center;gap:6px;padding:6px 12px 8px">'
         +['90','H','B'].map(function(v){
@@ -758,6 +760,11 @@ function renderResults(){
           const active=curResMode===v;
           return '<button class="mode-btn'+(active?" mode-active":"")+'" data-rmid="'+m.id+'" data-rval="'+v+'">'+labels[v]+'</button>';
         }).join("")
+        +(curResMode==='B'
+          ?'</div><div style="display:flex;justify-content:center;gap:6px;padding:0 12px 8px;font-size:12px;color:#888;align-items:center">Gy\u0151ztes: '
+            +'<button class="winner-btn'+(curWinner===m.home?" mode-active":"")+'" data-wmid="'+m.id+'" data-wval="'+m.home+'" style="font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid #333;background:'+(curWinner===m.home?'rgba(0,201,122,.2)':'transparent')+';color:'+(curWinner===m.home?'#00c97a':'#888')+'">'+m.home+'</button>'
+            +'<button class="winner-btn'+(curWinner===m.away?" mode-active":"")+'" data-wmid="'+m.id+'" data-wval="'+m.away+'" style="font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid #333;background:'+(curWinner===m.away?'rgba(0,201,122,.2)':'transparent')+';color:'+(curWinner===m.away?'#00c97a':'#888')+'">'+m.away+'</button>'
+          :"")
         +'</div>'
       :"";
     h+='<div class="admin-card"><div class="admin-head">'+(m.group?m.group+" csoport":(m.label||""))+" &middot; "+fmtTime(m.time)+'</div><div class="admin-body">'+hF
@@ -905,6 +912,20 @@ function bindEvents(){
 async function init(){
   if(lsGet("vb26_theme")==="light")document.body.classList.add("light");
 
+  // Büntetők győztes választó (admin)
+  document.body.addEventListener("click",async function(e){
+    const btn=e.target.closest(".winner-btn");
+    if(!btn)return;
+    const mid=btn.dataset.wmid,winner=btn.dataset.wval;
+    S.editRes[mid]=S.editRes[mid]||{};
+    S.editRes[mid].winner=winner;
+    const r=S.editRes[mid];
+    if(r&&r.home!==undefined&&r.away!==undefined&&r.home!==""&&r.away!==""){
+      await dbSet("results/"+mid,{home:r.home,away:r.away,mode:r.mode||"B",winner:winner});
+      await pollData();
+    }
+    renderMain();
+  });
   // Admin módválasztó — egyszer regisztrálva
   document.body.addEventListener("click",async function(e){
     const btn=e.target.closest("[data-rmid]");
