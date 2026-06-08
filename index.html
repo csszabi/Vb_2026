@@ -901,17 +901,27 @@ function bindEvents(){
       renderMain();
     });
   });
-  document.getElementById("cancelDel")&&document.getElementById("cancelDel").addEventListener("click",function(){S.delConfirm=null;renderMain();});
-  document.getElementById("confirmDel")&&document.getElementById("confirmDel").addEventListener("click",async function(){
-    const name=S.delConfirm;
-    await dbDel("users/"+name);await dbDel("tips/"+name);
-    S.delConfirm=null;showToast(name+" t\u00f6r\u00f6lve","info");await pollData();
-  });
 }
 
 async function init(){
   if(lsGet("vb26_theme")==="light")document.body.classList.add("light");
 
+  // Törlés gombok (admin)
+  document.body.addEventListener("click",function(e){
+    const btn=e.target.closest(".del-btn");
+    if(!btn)return;
+    S.delConfirm=btn.dataset.del;
+    renderMain();
+  });
+  document.body.addEventListener("click",function(e){
+    if(e.target.id==="cancelDel"){S.delConfirm=null;renderMain();}
+  });
+  document.body.addEventListener("click",async function(e){
+    if(e.target.id!=="confirmDel")return;
+    const name=S.delConfirm;
+    await dbDel("users/"+name);await dbDel("tips/"+name);
+    S.delConfirm=null;showToast(name+" t\u00f6r\u00f6lve","info");await pollData();renderMain();
+  });
   // Büntetők győztes választó (admin)
   document.body.addEventListener("click",async function(e){
     const btn=e.target.closest(".winner-btn");
