@@ -598,9 +598,70 @@ function renderHdr(isAdmin){
 
 function renderTabs(isAdmin){
   const tabs=isAdmin
-    ?[["results","\uD83D\uDCCB Eredm\u00e9nyek"],["standings","\uD83D\uDCCA Tabella"],["players","\uD83D\uDC65 J\u00e1t\u00e9kosok"],["leaderboard","\uD83C\uDFC5 Ranglista"]]
-    :[["matches","\u26BD M\u00e9rk\u0151z\u00e9sek"],["standings","\uD83D\uDCCA Tabella"],["leaderboard","\uD83C\uDFC5 Ranglista"]];
+    ?[["results","\uD83D\uDCCB Eredm\u00e9nyek"],["standings","\uD83D\uDCCA Tabella"],["players","\uD83D\uDC65 J\u00e1t\u00e9kosok"],["leaderboard","\uD83C\uDFC5 Ranglista"],["alltips","\uD83D\uDCDD Tippek"]]
+    :[["matches","\u26BD M\u00e9rk\u0151z\u00e9sek"],["standings","\uD83D\uDCCA Tabella"],["leaderboard","\uD83C\uDFC5 Ranglista"],["alltips","\uD83D\uDCDD Tippek"]];
   return '<div class="tabs">'+tabs.map(function(t){return '<button class="tab-btn'+(S.tab===t[0]?" active":"")+ '" data-tab="'+t[0]+'">'+t[1]+"</button>";}).join("")+"</div>";
+}
+
+function renderAllTips(){
+  const isAdmin=S.username===ADMIN;
+  const users=S.users.filter(function(u){return u!==ADMIN;});
+  if(!users.length)return'<p class="empty">M\u00e9g nincs regisztr\u00e1lt j\u00e1t\u00e9kos.</p>';
+  let h='';
+  const phases=[
+    {key:"csoport",label:"Csoportk\u00f6r"},
+    {key:"R16",label:"Nyolcadd\u00f6nt\u0151"},
+    {key:"QF",label:"Negyedd\u00f6nt\u0151"},
+    {key:"SF",label:"Elod\u00f6nt\u0151"},
+    {key:"3rd",label:"3. helyez\u00e9s"},
+    {key:"D",label:"D\u00f6nt\u0151"}
+  ];
+  phases.forEach(function(ph){
+    const phMatches=S.matches.filter(function(m){
+      return m.phase===ph.key&&(isAdmin||isLocked(m.time));
+    });
+    if(!phMatches.length)return;
+    h+='<div style="font-weight:700;font-size:13px;color:#00c97a;margin:16px 0 8px;text-transform:uppercase;letter-spacing:.5px">'+ph.label+'</div>';
+    phMatches.forEach(function(m){
+      const hasTip=users.some(function(u){return S.tips[u]&&S.tips[u][m.id]&&(S.tips[u][m.id].home!==""||S.tips[u][m.id].away!=="");});
+      if(!hasTip&&!isAdmin)return;
+      const modeLabels={'90':"90'",H:"Hossz.",B:"B\u00fcnt."};
+      h+='<div class="table-card" style="margin-bottom:12px">';
+      h+='<div class="table-title" style="display:flex;justify-content:space-between;align-items:center">';
+      h+='<span>'+fi(m.home)+' '+m.home+' \u2013 '+m.away+' '+fi(m.away)+'</span>';
+      h+='<span style="font-weight:400;font-size:11px;color:#888">'+fmtTime(m.time)+'</span>';
+      h+='</div>';
+      h+='<table class="standings-table"><thead><tr>'
+        +'<th style="text-align:left;padding-left:10px">J\u00e1t\u00e9kos</th>'
+        +'<th>Tipp</th>'
+        +(m.phase!=="csoport"?'<th>Kim.</th>':"")
+        +(m.result?'<th>Pont</th>':"")
+        +'</tr></thead><tbody>';
+      users.forEach(function(u){
+        const tip=(S.tips[u]&&S.tips[u][m.id])||null;
+        const hasTipU=tip&&(tip.home!==""&&tip.away!=="");
+        const pts=hasTipU&&m.result?calcPts(tip,m.result):null;
+        const ptsBadge=pts!==null?badgeHtml(pts):"";
+        const tipStr=hasTipU?(tip.home+"\u2013"+tip.away):'<span style="color:#555">\u2013</span>';
+        const modeStr=hasTipU&&tip.mode?(modeLabels[tip.mode]||tip.mode):'<span style="color:#555">\u2013</span>';
+        const isMe=u===S.username;
+        h+='<tr style="'+(isMe?"font-weight:700":"")+'"><td style="text-align:left;padding-left:10px;color:'+(isMe?"#00c97a":"#f0f0f0")+'">'+u+'</td>'
+          +'<td>'+tipStr+'</td>'
+          +(m.phase!=="csoport"?'<td style="font-size:11px;color:#888">'+modeStr+'</td>':"")
+          +(m.result?'<td>'+ptsBadge+'</td>':"")
+          +'</tr>';
+      });
+      h+='</tbody></table>';
+      if(m.result){
+        const resMode=m.result.mode?(' <span style="font-size:11px;color:#888">('+({'90':"90'",H:"Hosszabb\u00edt\u00e1s",B:"B\u00fcntet\u0151k"}[m.result.mode]||m.result.mode)+')</span>'):"";
+        h+='<div style="padding:6px 12px;font-size:12px;color:#888;border-top:1px solid #272727">V\u00e9geredm\u00e9ny: <b style="color:#f0f0f0">'+m.result.home+'\u2013'+m.result.away+'</b>'+resMode+'</div>';
+      }
+      h+='</div>';
+    });
+  });
+  if(!h)return'<p class="empty">M\u00e9g nincs lez\u00e1rt m\u00e9rk\u0151z\u00e9s.</p>';
+  if(!isAdmin)h='<p style="color:#888;font-size:12px;margin-bottom:12px">Csak a lez\u00e1rt m\u00e9rk\u0151z\u00e9sek tippjei l\u00e1that\u00f3k.</p>'+h;
+  return h;
 }
 
 function renderContent(){
@@ -610,7 +671,7 @@ function renderContent(){
   if(S.tab==="leaderboard")return renderLeaderboard();
   if(S.tab==="results")return renderResults();
   if(S.tab==="players")return renderPlayers();
-  return '<p class="empty">Nincs tartalom.</p>';
+  if(S.tab==="alltips")return renderAllTips();
 }
 
 function renderPhaseFilters(style){
