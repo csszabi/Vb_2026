@@ -735,7 +735,6 @@ function renderResults(){
   let h='<p style="color:#888;font-size:13px;margin-bottom:10px">A mez\u0151b\u0151l kil\u00e9pve automatikusan ment.</p>';
   // Teszt gomb csak csoportmérkőzéseknél
   if(S.phase==="csoport"){
-    h+='<button id="testDataBtn" style="margin-bottom:12px;padding:7px 16px;border-radius:8px;border:1px solid rgba(240,165,0,.4);background:rgba(240,165,0,.1);color:#f0a500;font-size:12px;font-weight:600;cursor:pointer">🎲 Véletlenszerű teszteredmények betöltése</button>';
   }
   h+=renderPhaseFilters("p");
   vis.forEach(function(m){
@@ -969,24 +968,6 @@ async function init(){
     showToast(u+" kedvenc csapata: "+team);
     await pollData();
     renderMain();
-  });
-  // Tesztadatok gomb
-  document.body.addEventListener("click",async function(e){
-    if(e.target.id!=="testDataBtn")return;
-    if(!confirm("Biztosan betöltöd a véletlenszerű teszteredményeket az összes csoportmérkőzésre?"))return;
-    e.target.textContent="⏳ Betöltés...";
-    e.target.disabled=true;
-    const rnd=function(){
-      const goals=[0,0,1,1,1,2,2,2,3,3,4];
-      return goals[Math.floor(Math.random()*goals.length)];
-    };
-    const groupMatches=ALL_MATCHES.filter(function(m){return m.phase==="csoport";});
-    await Promise.all(groupMatches.map(function(m){
-      return dbSet("results/"+m.id,{home:String(rnd()),away:String(rnd())});
-    }));
-    await pollData();
-    renderMain();
-    showToast("Teszteredmények betöltve ✓");
   });
   const savedUser=lsGet(LS_USER);
   const savedTab=lsGet(LS_TAB);
