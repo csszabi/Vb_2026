@@ -618,7 +618,7 @@ function renderAllTips(){
   ];
   phases.forEach(function(ph){
     const phMatches=S.matches.filter(function(m){
-      return m.phase===ph.key&&(isAdmin||isLocked(m.time));
+      return m.phase===ph.key;
     });
     if(!phMatches.length)return;
     h+='<div style="font-weight:700;font-size:13px;color:#00c97a;margin:16px 0 8px;text-transform:uppercase;letter-spacing:.5px">'+ph.label+'</div>';
@@ -659,8 +659,7 @@ function renderAllTips(){
       h+='</div>';
     });
   });
-  if(!h)return'<p class="empty">M\u00e9g nincs lez\u00e1rt m\u00e9rk\u0151z\u00e9s.</p>';
-  if(!isAdmin)h='<p style="color:#888;font-size:12px;margin-bottom:12px">Csak a lez\u00e1rt m\u00e9rk\u0151z\u00e9sek tippjei l\u00e1that\u00f3k.</p>'+h;
+  if(!h)return'<p class="empty">M\u00e9g nincs tipp.</p>';
   return h;
 }
 
